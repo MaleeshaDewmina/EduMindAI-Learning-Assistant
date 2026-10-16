@@ -2,31 +2,7 @@
 
 {% block content %}
 <div class="dashboard-layout">
-    <aside class="sidebar">
-        <div class="sidebar-logo">
-            <div class="brand-icon small">AI</div>
-            <span>EduMind AI</span>
-        </div>
-
-        <nav>
-            <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
-            <a class="active" href="{{ url_for('planner.index') }}">Study Planner</a>
-            <a href="{{ url_for('progress.index') }}">Progress Tracking</a>
-            <a href="{{ url_for('chatbot.index') }}">AI Chatbot</a>
-            <a href="{{ url_for('feedback.index') }}">Feedback</a>
-            <a href="{{ url_for('evaluation.index') }}">Evaluation</a>
-        </nav>
-
-        <button class="theme-toggle-btn sidebar-theme-toggle" type="button">
-            <span class="theme-icon">🌙</span>
-            <span class="theme-text">Dark Mode</span>
-        </button>
-
-        <form method="POST" action="{{ url_for('auth.logout') }}" class="logout-form">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="logout-link">Logout</button>
-        </form>
-    </aside>
+    {% include "partials/sidebar.html" %}
 
     <main class="main-content">
         <div class="topbar">

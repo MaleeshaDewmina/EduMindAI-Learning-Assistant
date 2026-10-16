@@ -28,4 +28,4 @@ class Config:
     SESSION_COOKIE_SAMESITE = "Lax"
     # Enable only after deploying behind HTTPS (localhost development uses HTTP).
     SESSION_COOKIE_SECURE = os.getenv("HTTPS_ENABLED", "false").lower() == "true"
-    MAX_CONTENT_LENGTH = 1024 * 1024  # Reject requests larger than 1 MiB.
+    MAX_CONTENT_LENGTH = 6 * 1024 * 1024  # Allows a single 5 MiB reference document plus form overhead.

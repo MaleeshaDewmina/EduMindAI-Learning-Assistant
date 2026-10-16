@@ -2,31 +2,7 @@
 
 {% block content %}
 <div class="dashboard-layout">
-    <aside class="sidebar">
-        <div class="sidebar-logo">
-            <div class="brand-icon small">AI</div>
-            <span>EduMind AI</span>
-        </div>
-
-        <nav>
-            <a class="active" href="{{ url_for('dashboard.index') }}">Dashboard</a>
-            <a href="{{ url_for('planner.index') }}">Study Planner</a>
-            <a href="{{ url_for('progress.index') }}">Progress Tracking</a>
-            <a href="{{ url_for('chatbot.index') }}">AI Chatbot</a>
-            <a href="{{ url_for('feedback.index') }}">Feedback</a>
-            <a href="{{ url_for('evaluation.index') }}">Evaluation</a>
-        </nav>
-
-        <button class="theme-toggle-btn sidebar-theme-toggle" type="button">
-            <span class="theme-icon">🌙</span>
-            <span class="theme-text">Dark Mode</span>
-        </button>
-
-        <form method="POST" action="{{ url_for('auth.logout') }}" class="logout-form">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="logout-link">Logout</button>
-        </form>
-    </aside>
+    {% include "partials/sidebar.html" %}
 
     <main class="main-content">
         <div class="topbar">
@@ -39,6 +15,14 @@
             </div>
         </div>
 
+        <section class="dashboard-hero" aria-label="Learning overview">
+            <div class="hero-copy"><span class="hero-eyebrow"><span class="hero-live-dot"></span> YOUR LEARNING SPACE</span>
+                <h2>Every study session<br>is a step <em>forward.</em></h2>
+                <p>Build momentum with a clear plan, supportive feedback and insight into your real study activity.</p>
+                <div class="hero-actions"><a href="{{ url_for('planner.index') }}" class="hero-btn-primary">Plan a task <span aria-hidden="true">↗</span></a><a href="{{ url_for('chatbot.index') }}" class="hero-btn-secondary">Ask your AI coach <span aria-hidden="true">✧</span></a></div>
+            </div>
+            <div class="hero-metric" aria-label="Current task completion"><div class="hero-ring" style="--ring-value: {{ (completed_tasks / total_tasks * 100) | round(0) if total_tasks else 0 }}"><div class="ring-inner"><strong>{{ (completed_tasks / total_tasks * 100) | round(0) | int if total_tasks else 0 }}%</strong><small>Tasks complete</small></div></div><div class="hero-ring-caption">Your progress at a glance <span aria-hidden="true">✦</span></div></div>
+        </section>
         <div class="stats-grid">
             <div class="stat-card">
                 <span>Total Tasks</span>

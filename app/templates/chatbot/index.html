@@ -1,96 +1,76 @@
 {% extends "base.html" %}
-
 {% block content %}
 <div class="dashboard-layout">
-    <aside class="sidebar">
-        <div class="sidebar-logo">
-            <div class="brand-icon small">AI</div>
-            <span>EduMind AI</span>
-        </div>
-
-        <nav>
-            <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
-            <a href="{{ url_for('planner.index') }}">Study Planner</a>
-            <a href="{{ url_for('progress.index') }}">Progress Tracking</a>
-            <a class="active" href="{{ url_for('chatbot.index') }}">AI Chatbot</a>
-            <a href="{{ url_for('feedback.index') }}">Feedback</a>
-            <a href="{{ url_for('evaluation.index') }}">Evaluation</a>
-        </nav>
-
-        <button class="theme-toggle-btn sidebar-theme-toggle" type="button">
-            <span class="theme-icon">🌙</span>
-            <span class="theme-text">Dark Mode</span>
-        </button>
-
-        <form method="POST" action="{{ url_for('auth.logout') }}" class="logout-form">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="logout-link">Logout</button>
-        </form>
-    </aside>
-
-    <main class="main-content">
+    {% include "partials/sidebar.html" %}
+    <main class="main-content chat-main">
         <div class="topbar">
-            <div>
-                <h1>AI Chatbot</h1>
-                <p>Ask academic questions, request study tips, or get motivational support.</p>
-            </div>
-            <div class="profile-pill">
-                {{ current_user.email }}
-            </div>
+            <div><h1>Your AI Study Coach</h1><p>A calmer, smarter space to ask questions, explore ideas and make progress.</p></div>
+            <div class="profile-pill">{{ current_user.email }}</div>
         </div>
 
-        <section class="chatbot-shell">
-            <div class="chat-controls">
-                <p class="chat-privacy-note">AI responses can be inaccurate. Avoid sharing passwords, private records or sensitive personal information.</p>
+        <section class="chat-studio" aria-label="EduMind AI study conversation">
+            <header class="chat-studio-header">
+                <div class="chat-assistant-avatar" aria-hidden="true">✦</div>
+                <div class="chat-assistant-details"><h2>EduMind Assistant <span class="chat-online-dot" title="AI feature available when configured"></span></h2><p>Learning support · Powered by Groq</p></div>
                 {% if chat_history %}
-                <form method="POST" action="{{ url_for('chatbot.clear_history') }}"
-                      onsubmit="return confirm('Delete ALL your saved EduMind AI chat messages? This cannot be undone.');">
+                <form method="POST" action="{{ url_for('chatbot.clear_history') }}" class="chat-clear-form" onsubmit="return confirm('Permanently delete your saved chat history? This cannot be undone.');">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn secondary-btn btn-sm">Clear Chat History</button>
+                    <button type="submit" class="chat-clear-btn" aria-label="Clear Chat History" title="Delete saved conversations for this account"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15M10 10v7M14 10v7"/></svg><span>Clear history</span></button>
                 </form>
                 {% endif %}
-            </div>
-            <div class="chat-window">
+            </header>
+            <div class="chat-privacy-banner" role="note"><span aria-hidden="true">ⓘ</span> AI may make mistakes. Avoid sensitive personal data. Uploaded documents are sent to the AI provider for this request and are not saved as files on EduMind.</div>
+            <div class="chat-window chat-studio-window" id="chat-window" aria-label="Conversation history">
                 {% if chat_history %}
                     {% for chat in chat_history %}
                         <div class="message-row user-row">
                             <div class="message-bubble user-bubble">
-                                <span>You</span>
+                                <div class="chat-bubble-top"><span>You</span><time datetime="{{ chat.created_at.isoformat() }}">{{ chat.created_at.strftime('%d %b, %H:%M') }} UTC</time></div>
                                 <p>{{ chat.user_message }}</p>
                             </div>
                         </div>
-
                         <div class="message-row ai-row">
+                            <div class="chat-message-avatar" aria-hidden="true">✦</div>
                             <div class="message-bubble ai-bubble">
-                                <span>EduMind AI • {{ chat.message_type }}</span>
-                                <div class="ai-response">{{ chat.ai_response | format_ai_reply }}</div>
+                                <div class="chat-bubble-top"><span>EduMind AI <span class="message-category">{{ chat.message_type }}</span></span></div>
+                                <div class="ai-response" id="reply-{{ chat.chat_id }}">{{ chat.ai_response | format_ai_reply }}</div>
+                                <div class="message-actions"><button type="button" data-copy-reply="reply-{{ chat.chat_id }}" aria-label="Copy this response">⧉ <span>Copy</span></button><button type="button" data-read-reply="reply-{{ chat.chat_id }}" aria-label="Read this answer aloud">◖)) <span>Listen</span></button></div>
                             </div>
                         </div>
                     {% endfor %}
                 {% else %}
-                    <div class="empty-state">
-                        <h4>Start your AI learning conversation</h4>
-                        <p>
-                            Try asking: “Help me plan my study tasks for this week” or
-                            “Motivate me to finish my assignment.”
-                        </p>
+                    <div class="chat-welcome">
+                        <div class="welcome-icon" aria-hidden="true">✦</div>
+                        <span class="chat-welcome-kicker">HELLO THERE</span>
+                        <h2>What will we learn today?</h2>
+                        <p>Ask me to explain a topic, build a study plan or help you work through a challenge. You can also attach a study document.</p>
                     </div>
                 {% endif %}
             </div>
-
-            <form method="POST" class="chat-input-box">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <textarea
-                    name="message"
-                    class="form-control custom-input"
-                    rows="3"
-                    maxlength="2000"
-                    placeholder="Ask EduMind AI anything about studies, motivation, planning, or assignments..."
-                    required></textarea>
-
-                <button type="submit" class="btn primary-btn">Send Message</button>
-            </form>
+            <section class="chat-compose-section" aria-label="Write a message">
+                <div class="chat-suggestion-row" aria-label="Suggested prompts">
+                    <button class="prompt-chip" type="button" data-prompt="Help me create a realistic study plan for the next seven days.">✦ Plan my week</button>
+                    <button class="prompt-chip" type="button" data-prompt="Explain this concept using an easy analogy and a practical example.">☼ Explain a concept</button>
+                    <button class="prompt-chip" type="button" data-prompt="I feel stuck with my studies. Help me take one manageable next step.">↗ Stay motivated</button>
+                </div>
+                <form method="POST" enctype="multipart/form-data" class="chat-composer" id="chat-compose-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <textarea name="message" id="chat-message" rows="2" maxlength="2000" aria-label="Message for AI study coach" placeholder="Ask anything about studying, planning or a topic you want to understand..."></textarea>
+                    <div id="attachment-preview" class="attachment-preview" hidden><span aria-hidden="true">📄</span><span id="attachment-name"></span><button type="button" id="remove-attachment" aria-label="Remove attached document">×</button></div>
+                    <div class="chat-composer-toolbar">
+                        <div class="chat-tool-buttons">
+                            <label for="chat-attachment" class="composer-icon-btn" title="Attach a PDF, DOCX, TXT or Markdown document, up to 5 MB" aria-label="Attach a study document"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 11.5-8.6 8.6a6 6 0 0 1-8.5-8.5l9-9a4 4 0 0 1 5.7 5.7l-9.1 9a2 2 0 0 1-2.8-2.8l8.4-8.5"/></svg><span>Attach</span></label>
+                            <input type="file" name="attachment" id="chat-attachment" accept=".pdf,.docx,.txt,.md" class="visually-hidden">
+                            <button type="button" class="composer-icon-btn" id="voice-input-btn" aria-label="Dictate a message using microphone" title="Voice input (browser support required)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8"/></svg><span>Speak</span></button>
+                            <button type="button" class="composer-icon-btn" id="voice-stop-btn" hidden aria-label="Stop reading the assistant response">■ <span>Stop audio</span></button>
+                        </div>
+                        <div class="chat-send-tools"><span id="chat-character-count" class="chat-char-count">0 / 2000</span><button type="submit" class="chat-send-btn" id="chat-send-btn"><span>Send message</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 12 16-8-5 16-3-6-8-2ZM12 14l8-10"/></svg></button></div>
+                    </div>
+                </form>
+                <p id="chat-feature-status" class="chat-feature-status" aria-live="polite">Attachment text is used for this request only. Dictation and read-aloud depend on browser support and may use your browser's speech service.</p>
+            </section>
         </section>
+        <script src="{{ url_for('static', filename='js/chat_studio.js') }}?v=1" defer></script>
     </main>
 </div>
 {% endblock %}

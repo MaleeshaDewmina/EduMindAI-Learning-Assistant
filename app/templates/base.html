@@ -14,11 +14,20 @@
     </script>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}?v=8">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/studio.css') }}?v=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chat_studio.css') }}?v=1">
 </head>
 
 <body>
 
+{% if current_user.is_authenticated %}
+<div class="mobile-app-bar"><button type="button" data-open-sidebar aria-controls="app-sidebar" aria-expanded="false" aria-label="Open navigation" class="mobile-menu-trigger"><span></span><span></span><span></span></button><strong>EduMind <span>AI</span></strong><span class="mobile-bar-accent" aria-hidden="true">✦</span></div>
+<button class="sidebar-overlay" type="button" data-close-sidebar aria-label="Close navigation menu" hidden></button>
+{% endif %}
 <div class="app-shell">
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -48,10 +57,10 @@
                 const text = button.querySelector(".theme-text");
 
                 if (theme === "dark") {
-                    icon.textContent = "☀️";
+                    icon.textContent = "☼";
                     text.textContent = "Light Mode";
                 } else {
-                    icon.textContent = "🌙";
+                    icon.textContent = "☾";
                     text.textContent = "Dark Mode";
                 }
             });
@@ -74,5 +83,6 @@
     });
 </script>
 
+<script src="{{ url_for('static', filename='js/studio.js') }}?v=1" defer></script>
 </body>
 </html>
