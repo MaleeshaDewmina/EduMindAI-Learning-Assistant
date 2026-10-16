@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-layout">
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="brand-icon small">AI</div>
+            <span>EduMind AI</span>
+        </div>
+
+        <nav>
+            <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
+            <a class="active" href="{{ url_for('planner.index') }}">Study Planner</a>
+            <a href="{{ url_for('progress.index') }}">Progress Tracking</a>
+            <a href="{{ url_for('chatbot.index') }}">AI Chatbot</a>
+            <a href="{{ url_for('feedback.index') }}">Feedback</a>
+            <a href="{{ url_for('evaluation.index') }}">Evaluation</a>
+        </nav>
+
+        <button class="theme-toggle-btn sidebar-theme-toggle" type="button">
+            <span class="theme-icon">🌙</span>
+            <span class="theme-text">Dark Mode</span>
+        </button>
+
+        <form method="POST" action="{{ url_for('auth.logout') }}" class="logout-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="logout-link">Logout</button>
+        </form>
+    </aside>
+
+    <main class="main-content">
+        <div class="topbar">
+            <div>
+                <h1>Study Planner</h1>
+                <p>Create tasks, set deadlines, and build consistent study habits.</p>
+            </div>
+            <div class="profile-pill">
+                {{ current_user.email }}
+            </div>
+        </div>
+
+        <div class="planner-grid">
+            <section class="form-card">
+                <h3>Create Study Task</h3>
+                <p>Add academic tasks and deadlines for progress tracking.</p>
+
+                <form method="POST" action="{{ url_for('planner.create') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label>Task Title</label>
+                        <input type="text" name="title" class="form-control custom-input" maxlength="150" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Subject</label>
+                        <input type="text" name="subject" class="form-control custom-input" maxlength="100" placeholder="Example: Software Engineering">
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Description</label>
+                        <textarea name="description" class="form-control custom-input" maxlength="3000" rows="4"></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label>Priority</label>
+                            <select name="priority" class="form-control custom-input">
+                                <option value="Low">Low</option>
+                                <option value="Medium" selected>Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label>Deadline</label>
+                            <input type="datetime-local" name="deadline" class="form-control custom-input" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn primary-btn w-100">Add Task</button>
+                </form>
+            </section>
+
+            <section class="table-card">
+                <h3>Your Study Tasks</h3>
+                <p>Tasks are used to calculate progress and personalized feedback.</p>
+
+                {% if tasks %}
+                    <div class="table-responsive">
+                        <table class="table custom-table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Task</th>
+                                    <th>Subject</th>
+                                    <th>Priority</th>
+                                    <th>Status</th>
+                                    <th>Deadline</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for task in tasks %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ task.title }}</strong>
+                                            {% if task.description %}
+                                                <small>{{ task.description }}</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ task.subject or "Not set" }}</td>
+                                        <td>
+                                            <span class="badge-soft">{{ task.priority }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="status-badge status-{{ task.status|lower }}">
+                                                {{ task.status }}
+                                            </span>
+                                        </td>
+                                        <td>{{ task.deadline.strftime("%Y-%m-%d %H:%M") }}</td>
+                                        <td>
+                                            <div class="action-group">
+                                                {% if task.status != "Completed" %}
+                                                    <form method="POST" action="{{ url_for('planner.complete', task_id=task.task_id) }}">
+                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                        <button type="submit" class="small-btn success-btn">Done</button>
+                                                    </form>
+                                                {% endif %}
+                                                <a href="{{ url_for('planner.edit', task_id=task.task_id) }}" class="small-btn edit-btn">Edit</a>
+                                                <form method="POST" action="{{ url_for('planner.delete', task_id=task.task_id) }}" onsubmit="return confirm('Delete this task?')">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                    <button type="submit" class="small-btn delete-btn">Delete</button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <h4>No study tasks yet</h4>
+                        <p>Create your first study task to start tracking progress.</p>
+                    </div>
+                {% endif %}
+            </section>
+        </div>
+    </main>
+</div>
+{% endblock %}

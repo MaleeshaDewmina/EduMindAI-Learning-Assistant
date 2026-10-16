@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-layout">
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="brand-icon small">AI</div>
+            <span>EduMind AI</span>
+        </div>
+
+        <nav>
+            <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
+            <a class="active" href="{{ url_for('planner.index') }}">Study Planner</a>
+            <a href="{{ url_for('progress.index') }}">Progress Tracking</a>
+            <a href="{{ url_for('chatbot.index') }}">AI Chatbot</a>
+            <a href="{{ url_for('feedback.index') }}">Feedback</a>
+            <a href="{{ url_for('evaluation.index') }}">Evaluation</a>
+        </nav>
+
+        <button class="theme-toggle-btn sidebar-theme-toggle" type="button">
+            <span class="theme-icon">🌙</span>
+            <span class="theme-text">Dark Mode</span>
+        </button>
+
+        <form method="POST" action="{{ url_for('auth.logout') }}" class="logout-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="logout-link">Logout</button>
+        </form>
+    </aside>
+
+    <main class="main-content">
+        <div class="topbar">
+            <div>
+                <h1>Edit Study Task</h1>
+                <p>Update task details, priority, deadline, or completion status.</p>
+            </div>
+        </div>
+
+        <section class="form-card max-card">
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="mb-3">
+                    <label>Task Title</label>
+                    <input type="text" name="title" class="form-control custom-input" maxlength="150" value="{{ task.title }}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label>Subject</label>
+                    <input type="text" name="subject" class="form-control custom-input" maxlength="100" value="{{ task.subject or '' }}">
+                </div>
+
+                <div class="mb-3">
+                    <label>Description</label>
+                    <textarea name="description" class="form-control custom-input" maxlength="3000" rows="4">{{ task.description or '' }}</textarea>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label>Priority</label>
+                        <select name="priority" class="form-control custom-input">
+                            <option value="Low" {% if task.priority == "Low" %}selected{% endif %}>Low</option>
+                            <option value="Medium" {% if task.priority == "Medium" %}selected{% endif %}>Medium</option>
+                            <option value="High" {% if task.priority == "High" %}selected{% endif %}>High</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label>Status</label>
+                        <select name="status" class="form-control custom-input">
+                            <option value="Pending" {% if task.status != "Completed" %}selected{% endif %}>Pending</option>
+                            <option value="Completed" {% if task.status == "Completed" %}selected{% endif %}>Completed</option>
+                        </select>
+                        <small>Overdue status is calculated automatically from the deadline.</small>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label>Deadline</label>
+                        <input type="datetime-local" name="deadline" class="form-control custom-input" value="{{ task.deadline.strftime('%Y-%m-%dT%H:%M') }}" required>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mt-3">
+                    <button type="submit" class="btn primary-btn">Save Changes</button>
+                    <a href="{{ url_for('planner.index') }}" class="btn secondary-btn">Cancel</a>
+                </div>
+            </form>
+        </section>
+    </main>
+</div>
+{% endblock %}

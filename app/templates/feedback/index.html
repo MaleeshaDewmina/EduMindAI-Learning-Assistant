@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-layout">
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="brand-icon small">AI</div>
+            <span>EduMind AI</span>
+        </div>
+
+        <nav>
+            <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
+            <a href="{{ url_for('planner.index') }}">Study Planner</a>
+            <a href="{{ url_for('progress.index') }}">Progress Tracking</a>
+            <a href="{{ url_for('chatbot.index') }}">AI Chatbot</a>
+            <a class="active" href="{{ url_for('feedback.index') }}">Feedback</a>
+            <a href="{{ url_for('evaluation.index') }}">Evaluation</a>
+        </nav>
+
+        <button class="theme-toggle-btn sidebar-theme-toggle" type="button">
+            <span class="theme-icon">🌙</span>
+            <span class="theme-text">Dark Mode</span>
+        </button>
+
+        <form method="POST" action="{{ url_for('auth.logout') }}" class="logout-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="logout-link">Logout</button>
+        </form>
+    </aside>
+
+    <main class="main-content">
+        <div class="topbar">
+            <div>
+                <h1>Personalized Feedback</h1>
+                <p>Behavioral insights generated from your study progress and system activity.</p>
+            </div>
+            <div class="profile-pill">
+                {{ current_user.email }}
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span>Completion Rate</span>
+                <h2>{{ metrics.completion_rate }}%</h2>
+                <p>Based on completed study tasks</p>
+            </div>
+
+            <div class="stat-card">
+                <span>Engagement</span>
+                <h2>{{ motivation.engagement_score }}%</h2>
+                <p>Based on recent system activity</p>
+            </div>
+
+            <div class="stat-card">
+                <span>Consistency</span>
+                <h2>{{ motivation.consistency_score }}%</h2>
+                <p>Based on active study days</p>
+            </div>
+
+            <div class="stat-card highlight">
+                <span>Behavioural Indicator</span>
+                <h2>{{ motivation.overall_motivation_score }}%</h2>
+                <p>Weighted measure of recorded app behaviour</p>
+            </div>
+        </div>
+
+        <section class="feedback-main-card">
+            <div class="feedback-header">
+                <div>
+                    <h3>Latest Personalized Insight</h3>
+                    <p>Generate feedback after updating tasks, progress, or chatbot usage.</p>
+                </div>
+
+                <form method="POST" action="{{ url_for('feedback.generate') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn primary-btn">Generate Feedback</button>
+                </form>
+            </div>
+
+            {% if latest_feedback %}
+                <div class="feedback-box">
+                    <span class="feedback-type">{{ latest_feedback.feedback_type }}</span>
+                    <h4>{{ latest_feedback.feedback_message }}</h4>
+                    <p>{{ latest_feedback.recommendation }}</p>
+                    <small>Generated on {{ latest_feedback.created_at.strftime("%Y-%m-%d %H:%M") }}</small>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h4>No personalized feedback yet</h4>
+                    <p>Click Generate Feedback to create your first behavioral insight.</p>
+                </div>
+            {% endif %}
+        </section>
+
+        <section class="table-card feedback-history-card">
+            <h3>Feedback History</h3>
+            <p>Previous feedback records created from your learning behavior.</p>
+
+            {% if feedback_history %}
+                <div class="timeline-list">
+                    {% for item in feedback_history %}
+                        <div class="timeline-item">
+                            <div>
+                                <strong>{{ item.feedback_type }}</strong>
+                                <span>{{ item.feedback_message }}</span>
+                                <span>{{ item.recommendation }}</span>
+                            </div>
+                            <small>{{ item.created_at.strftime("%Y-%m-%d %H:%M") }}</small>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h4>No feedback history</h4>
+                    <p>Your generated feedback records will appear here.</p>
+                </div>
+            {% endif %}
+        </section>
+    </main>
+</div>
+{% endblock %}

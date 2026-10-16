@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-layout">
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="brand-icon small">AI</div>
+            <span>EduMind AI</span>
+        </div>
+
+        <nav>
+            <a class="active" href="{{ url_for('dashboard.index') }}">Dashboard</a>
+            <a href="{{ url_for('planner.index') }}">Study Planner</a>
+            <a href="{{ url_for('progress.index') }}">Progress Tracking</a>
+            <a href="{{ url_for('chatbot.index') }}">AI Chatbot</a>
+            <a href="{{ url_for('feedback.index') }}">Feedback</a>
+            <a href="{{ url_for('evaluation.index') }}">Evaluation</a>
+        </nav>
+
+        <button class="theme-toggle-btn sidebar-theme-toggle" type="button">
+            <span class="theme-icon">🌙</span>
+            <span class="theme-text">Dark Mode</span>
+        </button>
+
+        <form method="POST" action="{{ url_for('auth.logout') }}" class="logout-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="logout-link">Logout</button>
+        </form>
+    </aside>
+
+    <main class="main-content">
+        <div class="topbar">
+            <div>
+                <h1>Dashboard</h1>
+                <p>Welcome, {{ user.full_name }}. Your intelligent learning workspace is ready.</p>
+            </div>
+            <div class="profile-pill">
+                {{ user.email }}
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span>Total Tasks</span>
+                <h2>{{ total_tasks }}</h2>
+                <p>Study tasks created</p>
+            </div>
+
+            <div class="stat-card">
+                <span>Completed</span>
+                <h2>{{ completed_tasks }}</h2>
+                <p>Tasks completed</p>
+            </div>
+
+            <div class="stat-card">
+                <span>Pending</span>
+                <h2>{{ pending_tasks }}</h2>
+                <p>Tasks remaining</p>
+            </div>
+
+            <div class="stat-card danger-card">
+                <span>Overdue</span>
+                <h2>{{ overdue_tasks }}</h2>
+                <p>Tasks past deadline</p>
+            </div>
+
+            <div class="stat-card highlight">
+                <span>Behavioural Motivation Indicator</span>
+                <h2>{{ "%.1f" | format(motivation_score) }}%</h2>
+                <p>Task completion, recorded engagement and activity consistency</p>
+            </div>
+        </div>
+
+
+<section class="insight-card" aria-labelledby="insight-title">
+    <div class="dashboard-section-heading">
+        <h3 id="insight-title">Personalised Study Insight</h3>
+        <a class="small-dashboard-link" href="{{ url_for('planner.index') }}">View study planner &rarr;</a>
+    </div>
+    <p>{{ insight }}</p>
+</section>
+
+<div class="dashboard-note" role="note">
+    <strong>About the indicator:</strong> This is a weighted behavioural index
+    (50% task completion, 25% recorded engagement, 25% activity consistency).
+    It is not a validated psychological measure of motivation or growth mindset.
+    Activity records describe interaction with EduMind AI, not total study time.
+</div>
+
+<section class="dashboard-visualisations" aria-labelledby="visualisation-title">
+    <div class="dashboard-section-heading">
+        <div>
+            <h2 id="visualisation-title">Your Learning Analytics</h2>
+            <p>Charts use your own recorded tasks and activity, with daily dates in UTC.</p>
+        </div>
+        <span class="dashboard-period-label">Last 7 days</span>
+    </div>
+
+    <div class="dashboard-chart-grid">
+        <article class="dashboard-chart-card">
+            <h3>Task Status</h3>
+            <p>Current task totals</p>
+            {% if total_tasks > 0 %}
+                <div class="dashboard-chart-container"><canvas id="taskStatusChart" aria-label="Chart of completed, pending and overdue tasks" role="img"></canvas></div>
+            {% else %}
+                <div class="dashboard-chart-empty">No study tasks yet. Create a task to see your status breakdown.</div>
+            {% endif %}
+        </article>
+
+        <article class="dashboard-chart-card">
+            <h3>Activity &amp; Completed Tasks</h3>
+            <p>Recorded application events and tasks completed per day</p>
+            <div class="dashboard-chart-container"><canvas id="weeklyActivityChart" aria-label="Chart of recorded activity and completed tasks over seven days" role="img"></canvas></div>
+        </article>
+
+        <article class="dashboard-chart-card dashboard-chart-wide">
+            <h3>Behavioural Indicator Components</h3>
+            <p>Each component is shown on a 0–100 scale; the weighted overall indicator appears above</p>
+            <div class="dashboard-chart-container dashboard-chart-short"><canvas id="indicatorBreakdownChart" aria-label="Chart of the three behavioural indicator components" role="img"></canvas></div>
+        </article>
+    </div>
+    <p class="dashboard-chart-error" id="dashboard-chart-error" role="status" hidden></p>
+</section>
+<script id="dashboard-chart-data" type="application/json">{{ chart_data | tojson }}</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/dashboard_charts.js') }}?v=1" defer></script>
+    </main>
+</div>
+{% endblock %}

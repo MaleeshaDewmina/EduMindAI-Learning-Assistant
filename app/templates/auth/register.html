@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-card wide-card">
+        <div class="brand-box">
+            <div class="brand-icon">AI</div>
+            <div>
+                <h1>EduMind AI</h1>
+                <p>Create your student learning profile.</p>
+            </div>
+        </div>
+
+        <h2>Student Registration</h2>
+        <p class="auth-subtitle">Your profile helps the system provide personalized feedback.</p>
+
+        <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label>Full Name</label>
+                    <input type="text" name="full_name" class="form-control custom-input" required>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label>Email Address</label>
+                    <input type="email" name="email" class="form-control custom-input" required>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label>University</label>
+                    <input type="text" name="university" class="form-control custom-input">
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label>Age</label>
+                    <input type="number" name="age" class="form-control custom-input" min="18" max="25">
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label>Password</label>
+                    <input type="password" name="password" class="form-control custom-input" required>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label>Confirm Password</label>
+                    <input type="password" name="confirm_password" class="form-control custom-input" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn primary-btn w-100">Create Account</button>
+        </form>
+
+        <p class="auth-link">
+            Already registered?
+            <a href="{{ url_for('auth.login') }}">Login here</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

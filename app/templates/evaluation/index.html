@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-layout">
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="brand-icon small">AI</div>
+            <span>EduMind AI</span>
+        </div>
+
+        <nav>
+            <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
+            <a href="{{ url_for('planner.index') }}">Study Planner</a>
+            <a href="{{ url_for('progress.index') }}">Progress Tracking</a>
+            <a href="{{ url_for('chatbot.index') }}">AI Chatbot</a>
+            <a href="{{ url_for('feedback.index') }}">Feedback</a>
+            <a class="active" href="{{ url_for('evaluation.index') }}">Evaluation</a>
+        </nav>
+
+        <button class="theme-toggle-btn sidebar-theme-toggle" type="button">
+            <span class="theme-icon">🌙</span>
+            <span class="theme-text">Dark Mode</span>
+        </button>
+        
+        <form method="POST" action="{{ url_for('auth.logout') }}" class="logout-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="logout-link">Logout</button>
+        </form>
+    </aside>
+
+    <main class="main-content">
+        <div class="topbar">
+            <div>
+                <h1>System Evaluation</h1>
+                <p>Measure motivation, confidence, growth mindset, and usability before and after using the system.</p>
+            </div>
+            <div class="profile-pill">
+                {{ current_user.email }}
+            </div>
+        </div>
+
+        <div class="evaluation-action-grid">
+            <section class="evaluation-card">
+                <span class="feedback-type">Pre-Test</span>
+                <h3>Before System Use</h3>
+                <p>
+                    Complete this before using EduMind AI fully. It records the student’s starting motivation,
+                    confidence, and growth mindset level.
+                </p>
+
+                {% if pre_test %}
+                    <small>Latest submitted: {{ pre_test.submitted_at.strftime("%Y-%m-%d %H:%M") }}</small>
+                {% else %}
+                    <small>Not submitted yet</small>
+                {% endif %}
+
+                <a href="{{ url_for('evaluation.pre_test') }}" class="btn primary-btn w-100 mt-3">
+                    Open Pre-Test
+                </a>
+            </section>
+
+            <section class="evaluation-card">
+                <span class="feedback-type">Post-Test</span>
+                <h3>After System Use</h3>
+                <p>
+                    Complete this after using the dashboard, planner, chatbot, progress tracking, and feedback modules.
+                </p>
+
+                {% if post_test %}
+                    <small>Latest submitted: {{ post_test.submitted_at.strftime("%Y-%m-%d %H:%M") }}</small>
+                {% else %}
+                    <small>Not submitted yet</small>
+                {% endif %}
+
+                <a href="{{ url_for('evaluation.post_test') }}" class="btn primary-btn w-100 mt-3">
+                    Open Post-Test
+                </a>
+            </section>
+        </div>
+
+        <div class="stats-grid mt-4">
+            <div class="stat-card">
+                <span>Motivation Avg</span>
+                <h2>{{ summary.motivation_avg }}/5</h2>
+                <p>Average motivation rating</p>
+            </div>
+
+            <div class="stat-card">
+                <span>Confidence Avg</span>
+                <h2>{{ summary.confidence_avg }}/5</h2>
+                <p>Average confidence rating</p>
+            </div>
+
+            <div class="stat-card">
+                <span>Growth Mindset Avg</span>
+                <h2>{{ summary.growth_mindset_avg }}/5</h2>
+                <p>Average growth mindset rating</p>
+            </div>
+
+            <div class="stat-card highlight">
+                <span>Usability Avg</span>
+                <h2>{{ summary.usability_avg }}/5</h2>
+                <p>Average usability rating</p>
+            </div>
+        </div>
+
+        <section class="table-card feedback-history-card">
+            <h3>Evaluation Responses</h3>
+            <p>Stored questionnaire responses for research analysis and final report evidence.</p>
+
+            {% if responses %}
+                <div class="table-responsive">
+                    <table class="table custom-table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Motivation</th>
+                                <th>Confidence</th>
+                                <th>Growth Mindset</th>
+                                <th>Usability</th>
+                                <th>Submitted</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for response in responses %}
+                                <tr>
+                                    <td>
+                                        <span class="badge-soft">{{ response.evaluation_type }}</span>
+                                    </td>
+                                    <td>{{ response.motivation_rating }}/5</td>
+                                    <td>{{ response.confidence_rating }}/5</td>
+                                    <td>{{ response.growth_mindset_rating }}/5</td>
+                                    <td>{{ response.usability_rating }}/5</td>
+                                    <td>{{ response.submitted_at.strftime("%Y-%m-%d %H:%M") }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h4>No evaluation responses yet</h4>
+                    <p>Submit the pre-test and post-test questionnaires to generate evaluation data.</p>
+                </div>
+            {% endif %}
+        </section>
+    </main>
+</div>
+{% endblock %}

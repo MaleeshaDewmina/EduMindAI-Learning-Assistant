@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <title>EduMind AI Learning Assistant</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
+
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem("edumind_theme") || "light";
+            document.documentElement.setAttribute("data-theme", savedTheme);
+        })();
+    </script>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}?v=8">
+</head>
+
+<body>
+
+<div class="app-shell">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-wrapper">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} shadow-sm">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const htmlElement = document.documentElement;
+        const themeButtons = document.querySelectorAll(".theme-toggle-btn");
+
+        function updateThemeButtons(theme) {
+            themeButtons.forEach(function (button) {
+                const icon = button.querySelector(".theme-icon");
+                const text = button.querySelector(".theme-text");
+
+                if (theme === "dark") {
+                    icon.textContent = "☀️";
+                    text.textContent = "Light Mode";
+                } else {
+                    icon.textContent = "🌙";
+                    text.textContent = "Dark Mode";
+                }
+            });
+        }
+
+        const savedTheme = localStorage.getItem("edumind_theme") || "light";
+        htmlElement.setAttribute("data-theme", savedTheme);
+        updateThemeButtons(savedTheme);
+
+        themeButtons.forEach(function (button) {
+            button.addEventListener("click", function () {
+                const currentTheme = htmlElement.getAttribute("data-theme");
+                const newTheme = currentTheme === "dark" ? "light" : "dark";
+
+                htmlElement.setAttribute("data-theme", newTheme);
+                localStorage.setItem("edumind_theme", newTheme);
+                updateThemeButtons(newTheme);
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

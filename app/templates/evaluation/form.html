@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-layout">
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="brand-icon small">AI</div>
+            <span>EduMind AI</span>
+        </div>
+
+        <nav>
+            <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
+            <a href="{{ url_for('planner.index') }}">Study Planner</a>
+            <a href="{{ url_for('progress.index') }}">Progress Tracking</a>
+            <a href="{{ url_for('chatbot.index') }}">AI Chatbot</a>
+            <a href="{{ url_for('feedback.index') }}">Feedback</a>
+            <a class="active" href="{{ url_for('evaluation.index') }}">Evaluation</a>
+        </nav>
+
+        <button class="theme-toggle-btn sidebar-theme-toggle" type="button">
+            <span class="theme-icon">🌙</span>
+            <span class="theme-text">Dark Mode</span>
+        </button>
+        
+        <form method="POST" action="{{ url_for('auth.logout') }}" class="logout-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="logout-link">Logout</button>
+        </form>
+    </aside>
+
+    <main class="main-content">
+        <div class="topbar">
+            <div>
+                {% if evaluation_type == "PreTest" %}
+                    <h1>Pre-Test Questionnaire</h1>
+                    <p>Record the student’s starting motivation, confidence, growth mindset, and expected usability.</p>
+                {% else %}
+                    <h1>Post-Test Questionnaire</h1>
+                    <p>Record the student’s experience after using EduMind AI.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <section class="form-card max-card">
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="question-block">
+                    <h4>1. Motivation</h4>
+
+                    {% if evaluation_type == "PreTest" %}
+                        <p>I currently feel motivated to manage my academic tasks effectively.</p>
+                    {% else %}
+                        <p>EduMind AI helped improve my motivation to manage academic tasks.</p>
+                    {% endif %}
+
+                    <select name="motivation_rating" class="form-control custom-input" required>
+                        <option value="">Select rating</option>
+                        <option value="1">1 - Strongly Disagree</option>
+                        <option value="2">2 - Disagree</option>
+                        <option value="3">3 - Neutral</option>
+                        <option value="4">4 - Agree</option>
+                        <option value="5">5 - Strongly Agree</option>
+                    </select>
+                </div>
+
+                <div class="question-block">
+                    <h4>2. Learning Confidence</h4>
+
+                    {% if evaluation_type == "PreTest" %}
+                        <p>I feel confident that I can improve my study habits and academic performance.</p>
+                    {% else %}
+                        <p>EduMind AI helped increase my confidence in improving my study habits.</p>
+                    {% endif %}
+
+                    <select name="confidence_rating" class="form-control custom-input" required>
+                        <option value="">Select rating</option>
+                        <option value="1">1 - Strongly Disagree</option>
+                        <option value="2">2 - Disagree</option>
+                        <option value="3">3 - Neutral</option>
+                        <option value="4">4 - Agree</option>
+                        <option value="5">5 - Strongly Agree</option>
+                    </select>
+                </div>
+
+                <div class="question-block">
+                    <h4>3. Growth Mindset</h4>
+
+                    {% if evaluation_type == "PreTest" %}
+                        <p>I believe my abilities can improve through effort, feedback, and consistent practice.</p>
+                    {% else %}
+                        <p>EduMind AI encouraged me to see challenges as opportunities for improvement.</p>
+                    {% endif %}
+
+                    <select name="growth_mindset_rating" class="form-control custom-input" required>
+                        <option value="">Select rating</option>
+                        <option value="1">1 - Strongly Disagree</option>
+                        <option value="2">2 - Disagree</option>
+                        <option value="3">3 - Neutral</option>
+                        <option value="4">4 - Agree</option>
+                        <option value="5">5 - Strongly Agree</option>
+                    </select>
+                </div>
+
+                <div class="question-block">
+                    <h4>4. Usability / Usefulness</h4>
+
+                    {% if evaluation_type == "PreTest" %}
+                        <p>I expect a learning assistant with planning, chatbot support, and feedback to be useful for students.</p>
+                    {% else %}
+                        <p>EduMind AI was easy to use and useful for study planning, progress tracking, and feedback.</p>
+                    {% endif %}
+
+                    <select name="usability_rating" class="form-control custom-input" required>
+                        <option value="">Select rating</option>
+                        <option value="1">1 - Strongly Disagree</option>
+                        <option value="2">2 - Disagree</option>
+                        <option value="3">3 - Neutral</option>
+                        <option value="4">4 - Agree</option>
+                        <option value="5">5 - Strongly Agree</option>
+                    </select>
+                </div>
+
+                <div class="question-block">
+                    <h4>5. Additional Comments</h4>
+                    <p>Write any feedback about motivation, study behavior, chatbot support, or system usability.</p>
+                    <textarea name="feedback_comments" class="form-control custom-input" rows="5"></textarea>
+                </div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn primary-btn">Submit Questionnaire</button>
+                    <a href="{{ url_for('evaluation.index') }}" class="btn secondary-btn">Cancel</a>
+                </div>
+            </form>
+        </section>
+    </main>
+</div>
+{% endblock %}

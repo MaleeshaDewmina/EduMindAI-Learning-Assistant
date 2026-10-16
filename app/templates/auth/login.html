@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-card">
+        <div class="brand-box">
+            <div class="brand-icon">AI</div>
+            <div>
+                <h1>EduMind AI</h1>
+                <p>Intelligent learning assistant for student motivation and growth mindset.</p>
+            </div>
+        </div>
+
+        <h2>Welcome back</h2>
+        <p class="auth-subtitle">Login to continue your personalized learning journey.</p>
+
+        <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="mb-3">
+                <label>Email Address</label>
+                <input type="email" name="email" class="form-control custom-input" required>
+            </div>
+
+            <div class="mb-3">
+                <label>Password</label>
+                <input type="password" name="password" class="form-control custom-input" required>
+            </div>
+
+            <button type="submit" class="btn primary-btn w-100">Login</button>
+        </form>
+
+        <p class="auth-link">
+            New student?
+            <a href="{{ url_for('auth.register') }}">Create an account</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

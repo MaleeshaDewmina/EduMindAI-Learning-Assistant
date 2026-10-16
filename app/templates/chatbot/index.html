@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-layout">
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="brand-icon small">AI</div>
+            <span>EduMind AI</span>
+        </div>
+
+        <nav>
+            <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
+            <a href="{{ url_for('planner.index') }}">Study Planner</a>
+            <a href="{{ url_for('progress.index') }}">Progress Tracking</a>
+            <a class="active" href="{{ url_for('chatbot.index') }}">AI Chatbot</a>
+            <a href="{{ url_for('feedback.index') }}">Feedback</a>
+            <a href="{{ url_for('evaluation.index') }}">Evaluation</a>
+        </nav>
+
+        <button class="theme-toggle-btn sidebar-theme-toggle" type="button">
+            <span class="theme-icon">🌙</span>
+            <span class="theme-text">Dark Mode</span>
+        </button>
+
+        <form method="POST" action="{{ url_for('auth.logout') }}" class="logout-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="logout-link">Logout</button>
+        </form>
+    </aside>
+
+    <main class="main-content">
+        <div class="topbar">
+            <div>
+                <h1>AI Chatbot</h1>
+                <p>Ask academic questions, request study tips, or get motivational support.</p>
+            </div>
+            <div class="profile-pill">
+                {{ current_user.email }}
+            </div>
+        </div>
+
+        <section class="chatbot-shell">
+            <div class="chat-controls">
+                <p class="chat-privacy-note">AI responses can be inaccurate. Avoid sharing passwords, private records or sensitive personal information.</p>
+                {% if chat_history %}
+                <form method="POST" action="{{ url_for('chatbot.clear_history') }}"
+                      onsubmit="return confirm('Delete ALL your saved EduMind AI chat messages? This cannot be undone.');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn secondary-btn btn-sm">Clear Chat History</button>
+                </form>
+                {% endif %}
+            </div>
+            <div class="chat-window">
+                {% if chat_history %}
+                    {% for chat in chat_history %}
+                        <div class="message-row user-row">
+                            <div class="message-bubble user-bubble">
+                                <span>You</span>
+                                <p>{{ chat.user_message }}</p>
+                            </div>
+                        </div>
+
+                        <div class="message-row ai-row">
+                            <div class="message-bubble ai-bubble">
+                                <span>EduMind AI • {{ chat.message_type }}</span>
+                                <div class="ai-response">{{ chat.ai_response | format_ai_reply }}</div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <h4>Start your AI learning conversation</h4>
+                        <p>
+                            Try asking: “Help me plan my study tasks for this week” or
+                            “Motivate me to finish my assignment.”
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <form method="POST" class="chat-input-box">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <textarea
+                    name="message"
+                    class="form-control custom-input"
+                    rows="3"
+                    maxlength="2000"
+                    placeholder="Ask EduMind AI anything about studies, motivation, planning, or assignments..."
+                    required></textarea>
+
+                <button type="submit" class="btn primary-btn">Send Message</button>
+            </form>
+        </section>
+    </main>
+</div>
+{% endblock %}

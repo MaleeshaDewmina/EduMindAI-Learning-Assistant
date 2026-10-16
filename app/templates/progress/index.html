@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-layout">
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="brand-icon small">AI</div>
+            <span>EduMind AI</span>
+        </div>
+
+        <nav>
+            <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
+            <a href="{{ url_for('planner.index') }}">Study Planner</a>
+            <a class="active" href="{{ url_for('progress.index') }}">Progress Tracking</a>
+            <a href="{{ url_for('chatbot.index') }}">AI Chatbot</a>
+            <a href="{{ url_for('feedback.index') }}">Feedback</a>
+            <a href="{{ url_for('evaluation.index') }}">Evaluation</a>
+        </nav>
+
+        <button class="theme-toggle-btn sidebar-theme-toggle" type="button">
+            <span class="theme-icon">🌙</span>
+            <span class="theme-text">Dark Mode</span>
+        </button>
+
+        <form method="POST" action="{{ url_for('auth.logout') }}" class="logout-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="logout-link">Logout</button>
+        </form>
+    </aside>
+
+    <main class="main-content">
+        <div class="topbar">
+            <div>
+                <h1>Progress Tracking</h1>
+                <p>Monitor task completion and recorded application engagement patterns.</p>
+            </div>
+            <div class="profile-pill">
+                {{ current_user.email }}
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span>Completion Rate</span>
+                <h2>{{ metrics.completion_rate }}%</h2>
+                <p>Completed tasks compared to total tasks</p>
+            </div>
+
+            <div class="stat-card">
+                <span>Engagement Score</span>
+                <h2>{{ motivation.engagement_score }}%</h2>
+                <p>Based on recent system activity</p>
+            </div>
+
+            <div class="stat-card">
+                <span>Consistency Score</span>
+                <h2>{{ motivation.consistency_score }}%</h2>
+                <p>Based on days with recorded app activity</p>
+            </div>
+
+            <div class="stat-card highlight">
+                <span>Behavioural Indicator</span>
+                <h2>{{ motivation.overall_motivation_score }}%</h2>
+                <p>50% completion · 25% engagement · 25% consistency</p>
+            </div>
+        </div>
+
+        <div class="progress-grid">
+            <section class="table-card">
+                <h3>Progress History</h3>
+                <p>Records created when tasks are added, updated, completed, or deleted.</p>
+
+                {% if progress_logs %}
+                    <div class="timeline-list">
+                        {% for log in progress_logs %}
+                            <div class="timeline-item">
+                                <div>
+                                    <strong>{{ log.activity_type }}</strong>
+                                    <span>Completion Rate: {{ log.completion_rate }}%</span>
+                                </div>
+                                <small>{{ log.log_date.strftime("%Y-%m-%d %H:%M") }}</small>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <h4>No progress records yet</h4>
+                        <p>Create or complete tasks to generate progress history.</p>
+                    </div>
+                {% endif %}
+            </section>
+
+            <section class="table-card">
+                <h3>Recent Activity</h3>
+                <p>Behavioral activity used for personalized feedback and recommendations.</p>
+
+                {% if activity_logs %}
+                    <div class="timeline-list">
+                        {% for activity in activity_logs %}
+                            <div class="timeline-item">
+                                <div>
+                                    <strong>{{ activity.activity_name }}</strong>
+                                    <span>{{ activity.activity_details or "No details" }}</span>
+                                </div>
+                                <small>{{ activity.created_at.strftime("%Y-%m-%d %H:%M") }}</small>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <h4>No activity records yet</h4>
+                        <p>Use the system to generate behavioral insight data.</p>
+                    </div>
+                {% endif %}
+            </section>
+        </div>
+
+        <div class="insight-card">
+            <h3>Interpreting Your Activity</h3>
+            {% if metrics.total_tasks == 0 %}
+                <p>Add a study task to begin tracking task completion and progress.</p>
+            {% elif metrics.overdue_tasks > 0 %}
+                <p>You have {{ metrics.overdue_tasks }} overdue task(s). Consider breaking down your next step into something manageable.</p>
+            {% elif metrics.completed_tasks == metrics.total_tasks %}
+                <p>All of your currently recorded study tasks are complete. Review what helped you and set a new achievable goal when ready.</p>
+            {% elif metrics.pending_tasks > 0 %}
+                <p>You have {{ metrics.pending_tasks }} pending task(s). Choose one next step and record your progress.</p>
+            {% else %}
+                <p>Review your study plan to decide on your next learning activity.</p>
+            {% endif %}
+            <p><small><strong>Measurement note:</strong> This is a custom behavioural index (50% task completion, 25% app engagement, 25% activity consistency), not a validated psychological measurement of motivation or growth mindset. Activity records describe EduMind AI usage, not total study time.</small></p>
+        </div>
+    </main>
+</div>
+{% endblock %}
