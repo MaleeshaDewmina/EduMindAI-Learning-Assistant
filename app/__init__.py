@@ -37,6 +37,7 @@ def create_app(test_config=None):
     from app.models.chat_message import ChatMessage
     from app.models.feedback import Feedback
     from app.models.evaluation_response import EvaluationResponse
+    from app.models.evaluation_item_response import EvaluationItemResponse
 
     from app.routes.auth_routes import auth_bp
     from app.routes.dashboard_routes import dashboard_bp

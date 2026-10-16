@@ -3,11 +3,7 @@
 {% block content %}
 <div class="dashboard-layout">
     <aside class="sidebar">
-        <div class="sidebar-logo">
-            <div class="brand-icon small">AI</div>
-            <span>EduMind AI</span>
-        </div>
-
+        <div class="sidebar-logo"><div class="brand-icon small">AI</div><span>EduMind AI</span></div>
         <nav>
             <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
             <a href="{{ url_for('planner.index') }}">Study Planner</a>
@@ -16,132 +12,105 @@
             <a href="{{ url_for('feedback.index') }}">Feedback</a>
             <a class="active" href="{{ url_for('evaluation.index') }}">Evaluation</a>
         </nav>
-
-        <button class="theme-toggle-btn sidebar-theme-toggle" type="button">
-            <span class="theme-icon">🌙</span>
-            <span class="theme-text">Dark Mode</span>
-        </button>
-        
+        <button class="theme-toggle-btn sidebar-theme-toggle" type="button"><span class="theme-icon">🌙</span><span class="theme-text">Dark Mode</span></button>
         <form method="POST" action="{{ url_for('auth.logout') }}" class="logout-form">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="logout-link">Logout</button>
         </form>
     </aside>
-
     <main class="main-content">
         <div class="topbar">
             <div>
-                <h1>System Evaluation</h1>
-                <p>Measure motivation, confidence, growth mindset, and usability before and after using the system.</p>
+                <h1>Research Evaluation</h1>
+                <p>Matched pre/post exploratory ratings and separate post-use experience feedback.</p>
             </div>
-            <div class="profile-pill">
-                {{ current_user.email }}
-            </div>
+        </div>
+        <div class="alert alert-warning" role="note">
+            <strong>{{ instrument_version }} — draft questionnaire.</strong>
+            Do not use for participant recruitment or data collection until Ms. Hashini Fernando and the appropriate university ethics process approve the study.
+            These ratings are self-reports, not the behavioural motivation indicator shown elsewhere.
         </div>
 
         <div class="evaluation-action-grid">
             <section class="evaluation-card">
-                <span class="feedback-type">Pre-Test</span>
-                <h3>Before System Use</h3>
-                <p>
-                    Complete this before using EduMind AI fully. It records the student’s starting motivation,
-                    confidence, and growth mindset level.
-                </p>
-
+                <span class="feedback-type">Step 1</span>
+                <h3>Pre-Test — Before Use</h3>
+                <p>Record the baseline using nine matched study-attitude questions plus one expected-usefulness question.</p>
                 {% if pre_test %}
-                    <small>Latest submitted: {{ pre_test.submitted_at.strftime("%Y-%m-%d %H:%M") }}</small>
+                    <p><strong>Submitted:</strong> {{ pre_test.submitted_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                    <span class="badge-soft">Completed for this account</span>
                 {% else %}
-                    <small>Not submitted yet</small>
+                    <a href="{{ url_for('evaluation.pre_test') }}" class="btn primary-btn w-100 mt-3">Open Pre-Test</a>
                 {% endif %}
-
-                <a href="{{ url_for('evaluation.pre_test') }}" class="btn primary-btn w-100 mt-3">
-                    Open Pre-Test
-                </a>
             </section>
-
             <section class="evaluation-card">
-                <span class="feedback-type">Post-Test</span>
-                <h3>After System Use</h3>
-                <p>
-                    Complete this after using the dashboard, planner, chatbot, progress tracking, and feedback modules.
-                </p>
-
+                <span class="feedback-type">Step 2</span>
+                <h3>Post-Test — After Use</h3>
+                <p>Repeat the nine identical statements after a defined use period, then rate actual usability and feedback relevance.</p>
                 {% if post_test %}
-                    <small>Latest submitted: {{ post_test.submitted_at.strftime("%Y-%m-%d %H:%M") }}</small>
+                    <p><strong>Submitted:</strong> {{ post_test.submitted_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                    <span class="badge-soft">Completed for this account</span>
+                {% elif pre_test %}
+                    <a href="{{ url_for('evaluation.post_test') }}" class="btn primary-btn w-100 mt-3">Open Post-Test</a>
                 {% else %}
-                    <small>Not submitted yet</small>
+                    <p class="text-muted">Complete the revised pre-test first.</p>
                 {% endif %}
-
-                <a href="{{ url_for('evaluation.post_test') }}" class="btn primary-btn w-100 mt-3">
-                    Open Post-Test
-                </a>
             </section>
         </div>
 
-        <div class="stats-grid mt-4">
-            <div class="stat-card">
-                <span>Motivation Avg</span>
-                <h2>{{ summary.motivation_avg }}/5</h2>
-                <p>Average motivation rating</p>
+        <section class="table-card mt-4">
+            <h3>Matched questionnaire summary — item means (1 to 5)</h3>
+            <p>Each construct uses the mean of three identically worded questions. A difference can be shown only once a matching post-test is available. Changes are descriptive; this single-account view cannot establish effectiveness or causation.</p>
+            <div class="table-responsive">
+                <table class="table custom-table align-middle">
+                    <thead><tr><th>Exploratory construct</th><th>Pre-test</th><th>Post-test</th><th>Difference</th></tr></thead>
+                    <tbody>
+                    {% for item in comparison %}
+                        <tr>
+                            <td>{{ item.name }}</td>
+                            <td>{{ item.pre if item.pre is not none else '—' }}</td>
+                            <td>{{ item.post if item.post is not none else '—' }}</td>
+                            <td>{{ ('%+.2f'|format(item.change)) if item.change is not none else '—' }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
             </div>
+        </section>
 
-            <div class="stat-card">
-                <span>Confidence Avg</span>
-                <h2>{{ summary.confidence_avg }}/5</h2>
-                <p>Average confidence rating</p>
-            </div>
+        <section class="table-card mt-4">
+            <h3>Stage-specific questions (not paired)</h3>
+            <p>Pre-test expected usefulness: <strong>{% if pre_expectation is not none %}{{ pre_expectation }}/5{% else %}—{% endif %}</strong></p>
+            {% if post_test %}
+                <p>Post-use ease of navigation: <strong>{{ post_usability.U1 }}/5</strong>;
+                feedback relevance: <strong>{{ post_usability.U2 }}/5</strong>;
+                help organising study tasks: <strong>{{ post_usability.U3 }}/5</strong>.</p>
+            {% else %}
+                <p>Post-use usability and feedback ratings will appear after the post-test.</p>
+            {% endif %}
+        </section>
 
-            <div class="stat-card">
-                <span>Growth Mindset Avg</span>
-                <h2>{{ summary.growth_mindset_avg }}/5</h2>
-                <p>Average growth mindset rating</p>
-            </div>
-
-            <div class="stat-card highlight">
-                <span>Usability Avg</span>
-                <h2>{{ summary.usability_avg }}/5</h2>
-                <p>Average usability rating</p>
-            </div>
-        </div>
-
-        <section class="table-card feedback-history-card">
-            <h3>Evaluation Responses</h3>
-            <p>Stored questionnaire responses for research analysis and final report evidence.</p>
-
+        <section class="table-card feedback-history-card mt-4">
+            <h3>Saved Evaluation Records</h3>
+            <p>Older questionnaire versions are retained but are <strong>not</strong> combined with the revised paired results.</p>
             {% if responses %}
                 <div class="table-responsive">
                     <table class="table custom-table align-middle">
-                        <thead>
-                            <tr>
-                                <th>Type</th>
-                                <th>Motivation</th>
-                                <th>Confidence</th>
-                                <th>Growth Mindset</th>
-                                <th>Usability</th>
-                                <th>Submitted</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>Stage</th><th>Version</th><th>Stored on</th><th>Notes</th></tr></thead>
                         <tbody>
                             {% for response in responses %}
-                                <tr>
-                                    <td>
-                                        <span class="badge-soft">{{ response.evaluation_type }}</span>
-                                    </td>
-                                    <td>{{ response.motivation_rating }}/5</td>
-                                    <td>{{ response.confidence_rating }}/5</td>
-                                    <td>{{ response.growth_mindset_rating }}/5</td>
-                                    <td>{{ response.usability_rating }}/5</td>
-                                    <td>{{ response.submitted_at.strftime("%Y-%m-%d %H:%M") }}</td>
-                                </tr>
+                            <tr>
+                                <td>{{ 'Pre-test' if response.evaluation_type == 'PreTest' else 'Post-test' }}</td>
+                                <td>{{ instrument_version if response.item_scores and response.item_scores[0].instrument_version == instrument_version else 'Legacy / other questionnaire version' }}</td>
+                                <td>{{ response.submitted_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>{{ 'Full item ratings retained' if response.item_scores and response.item_scores[0].instrument_version == instrument_version else 'Not included in v2 comparison' }}</td>
+                            </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
             {% else %}
-                <div class="empty-state">
-                    <h4>No evaluation responses yet</h4>
-                    <p>Submit the pre-test and post-test questionnaires to generate evaluation data.</p>
-                </div>
+                <div class="empty-state"><h4>No evaluation responses yet</h4><p>Submit the revised pre-test when the protocol is approved and you are ready to collect data.</p></div>
             {% endif %}
         </section>
     </main>
