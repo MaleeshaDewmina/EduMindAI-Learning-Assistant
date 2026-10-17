@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="dashboard-layout">
+    {% include "partials/sidebar.html" %}
+    <main class="main-content lecturer-page">
+        <div class="topbar"><div><a class="lecturer-link" href="{{ url_for('lecturer.index') }}">&larr; All authorised students</a><h1>{{ student.full_name | e }}</h1><p>Read-only student progress report. Access can be revoked by the student.</p></div></div>
+        <div class="lecturer-cards lecturer-four"><div class="lecturer-panel"><span>Completed tasks</span><strong>{{ report.completed }}/{{ report.total }}</strong></div><div class="lecturer-panel"><span>Pending</span><strong>{{ report.pending }}</strong></div><div class="lecturer-panel"><span>Overdue</span><strong>{{ report.overdue }}</strong></div><div class="lecturer-panel"><span>Behavioural indicator</span><strong>{{ '%.1f' | format(report.indicator) }}%</strong></div></div>
+        <div class="lecturer-notice">Behavioural index = 50% task completion + 25% recorded engagement + 25% seven-day activity consistency. App use is not total study time; the index is not a validated motivation or growth-mindset scale.</div>
+        <section class="lecturer-panel lecturer-table-panel"><h2>Recent activity indicators (7 days)</h2><p>Recorded interactions: <strong>{{ report.activity_events }}</strong>. Active days: <strong>{{ report.active_days }}/7</strong>. Recorded engagement: <strong>{{ report.engagement }}%</strong>. Consistency: <strong>{{ report.consistency }}%</strong>.</p></section>
+        <section class="lecturer-panel lecturer-table-panel"><h2>Revised questionnaire — construct means (1 to 5)</h2><p>Summary-only display of nine paired exploratory items. No individual answers, comments, or chatbot conversations are shared. Ratings are development-test data unless collected under an approved protocol.</p><div class="table-responsive"><table class="table custom-table"><thead><tr><th>Construct</th><th>Pre-test</th><th>Post-test</th><th>Change</th></tr></thead><tbody>
+        {% for item in report.evaluation %}<tr><td>{{ item.name }}</td><td>{{ item.pre if item.pre is not none else '—' }}</td><td>{{ item.post if item.post is not none else '—' }}</td><td>{{ '%+.2f' | format(item.change) if item.change is not none else '—' }}</td></tr>{% endfor %}
+        </tbody></table></div></section>
+    </main>
+</div>
+{% endblock %}

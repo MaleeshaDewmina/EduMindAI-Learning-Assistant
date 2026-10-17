@@ -29,7 +29,7 @@ def valid_email(email):
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for("dashboard.index"))
+        return redirect(url_for("lecturer.index" if current_user.role == "lecturer" else "dashboard.index"))
 
     if request.method == "POST":
         full_name = request.form.get("full_name", "").strip()
@@ -94,7 +94,7 @@ def register():
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for("dashboard.index"))
+        return redirect(url_for("lecturer.index" if current_user.role == "lecturer" else "dashboard.index"))
 
     if request.method == "POST":
         email = request.form.get("email", "").strip().lower()
@@ -105,9 +105,9 @@ def login():
             login_user(user)
             user.last_login = datetime.utcnow()
             db.session.commit()
-            log_activity(user.user_id, "Login", "Student logged into EduMind AI.")
+            log_activity(user.user_id, "Login", "User logged into EduMind AI.")
             flash("Login successful.", "success")
-            return redirect(url_for("dashboard.index"))
+            return redirect(url_for("lecturer.index" if current_user.role == "lecturer" else "dashboard.index"))
 
         flash("Invalid email or password.", "danger")
         return redirect(url_for("auth.login"))

@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for
+from flask import Flask, redirect, url_for, request
 from flask_login import current_user
 from flask_wtf.csrf import CSRFProtect
 
@@ -38,6 +38,7 @@ def create_app(test_config=None):
     from app.models.feedback import Feedback
     from app.models.evaluation_response import EvaluationResponse
     from app.models.evaluation_item_response import EvaluationItemResponse
+    from app.models.lecturer_access_grant import LecturerAccessGrant
 
     from app.routes.auth_routes import auth_bp
     from app.routes.dashboard_routes import dashboard_bp
@@ -46,6 +47,7 @@ def create_app(test_config=None):
     from app.routes.chatbot_routes import chatbot_bp
     from app.routes.feedback_routes import feedback_bp
     from app.routes.evaluation_routes import evaluation_bp
+    from app.routes.lecturer_routes import lecturer_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -54,11 +56,23 @@ def create_app(test_config=None):
     app.register_blueprint(chatbot_bp)
     app.register_blueprint(feedback_bp)
     app.register_blueprint(evaluation_bp)
+    app.register_blueprint(lecturer_bp)
+
+    @app.before_request
+    def lecturer_stays_in_lecturer_area():
+        # All legacy student routes were originally only login-protected.
+        # A lecturer may access only lecturer reports and logout, not tasks,
+        # chatbot, feedback, evaluation submission, or student account pages.
+        if (current_user.is_authenticated
+                and current_user.role == "lecturer"
+                and request.endpoint not in ("auth.logout", "static", "home")
+                and request.blueprint != "lecturer"):
+            return redirect(url_for("lecturer.index"))
 
     @app.route("/")
     def home():
         if current_user.is_authenticated:
-            return redirect(url_for("dashboard.index"))
+            return redirect(url_for("lecturer.index" if current_user.role == "lecturer" else "dashboard.index"))
         return redirect(url_for("auth.login"))
 
     @app.after_request

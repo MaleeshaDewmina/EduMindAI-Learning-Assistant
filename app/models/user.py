@@ -15,6 +15,8 @@ class User(UserMixin, db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_login = db.Column(db.DateTime, nullable=True)
     is_active = db.Column(db.Boolean, default=True)
+    # Only an authorised local operator can create/promote lecturer accounts.
+    role = db.Column(db.String(16), nullable=False, default="student", server_default="student")
 
     def get_id(self):
         return str(self.user_id)
@@ -22,4 +24,4 @@ class User(UserMixin, db.Model):
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))

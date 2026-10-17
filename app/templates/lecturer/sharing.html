@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="dashboard-layout">
+    {% include "partials/sidebar.html" %}
+    <main class="main-content lecturer-page">
+        <div class="topbar"><div><span class="lecturer-kicker">YOUR CHOICE</span><h1>Share Progress with a Lecturer</h1><p>Choose who can see a limited, read-only summary of your learning progress.</p></div></div>
+        <div class="lecturer-notice"><strong>What you share:</strong> Your name and account email, task completion and overdue counts, recent app activity, behavioural indicator, and mean pre/post questionnaire construct ratings where available. <strong>Not shared:</strong> chat conversations, uploaded documents, questionnaire comments, individual questionnaire answers, or passwords. You can revoke access below at any time. This feature does not constitute research consent.</div>
+        <section class="lecturer-panel lecturer-table-panel"><h2>Grant access</h2><form method="post" action="{{ url_for('lecturer.grant_access') }}" class="lecturer-share-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label for="lecturer-email">Authorised lecturer account email</label><input id="lecturer-email" class="form-control" name="lecturer_email" type="email" maxlength="120" placeholder="lecturer@example.edu" required><button class="btn primary-btn" type="submit">Grant access</button></form></section>
+        <section class="lecturer-panel lecturer-table-panel"><h2>Lecturers with access</h2>
+        {% if grants %}<div class="table-responsive"><table class="table custom-table align-middle"><thead><tr><th>Lecturer</th><th>Shared since (UTC)</th><th>Action</th></tr></thead><tbody>{% for grant in grants %}<tr><td><strong>{{ grant.lecturer.full_name }}</strong><br><small>{{ grant.lecturer.email }}</small></td><td>{{ grant.granted_at.strftime('%Y-%m-%d %H:%M') }}</td><td><form method="POST" action="{{ url_for('lecturer.revoke_access', grant_id=grant.grant_id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-outline-danger btn-sm" type="submit">Revoke access</button></form></td></tr>{% endfor %}</tbody></table></div>
+        {% else %}<p>You have not granted access to any lecturer.</p>{% endif %}</section>
+    </main>
+</div>
+{% endblock %}

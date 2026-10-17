@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="dashboard-layout">
+    {% include "partials/sidebar.html" %}
+    <main class="main-content lecturer-page">
+        <div class="topbar"><div><span class="lecturer-kicker">ACADEMIC WORKSPACE</span><h1>Lecturer Dashboard</h1><p>Read-only reporting for students who have explicitly shared their progress.</p></div></div>
+        <div class="lecturer-notice"><strong>Privacy first.</strong> Only authorised students are shown. Scores measure recorded app behaviour, not psychological motivation. Questionnaire ratings are exploratory, and report access does not replace research ethics approval.</div>
+        <div class="lecturer-cards"><div class="lecturer-panel"><span>Students sharing with you</span><strong>{{ entries | length }}</strong></div><div class="lecturer-panel"><span>Students with a completed pre-test</span><strong>{{ pre_count }}</strong><small>See individual study reports for verified submission status.</small></div></div>
+        <section class="lecturer-panel lecturer-table-panel"><h2>Authorised student progress</h2>
+        {% if entries %}<div class="table-responsive"><table class="table custom-table align-middle"><thead><tr><th>Student</th><th>Tasks complete</th><th>Overdue</th><th>Behavioural indicator</th><th>Report</th></tr></thead><tbody>
+        {% for student, report in entries %}<tr><td><strong>{{ student.full_name }}</strong><br><small>{{ student.email }}</small></td><td>{{ report.completed }}/{{ report.total }} ({{ '%.1f' | format(report.completion) }}%)</td><td>{{ report.overdue }}</td><td>{{ '%.1f' | format(report.indicator) }}%</td><td><a class="lecturer-link" href="{{ url_for('lecturer.student_detail', student_id=student.user_id) }}">View report &rarr;</a></td></tr>{% endfor %}
+        </tbody></table></div>
+        {% else %}<p>No students have shared reports with this lecturer yet. Ask a test student to open <strong>Share Progress</strong> and grant access using your lecturer account email.</p>{% endif %}</section>
+    </main>
+</div>
+{% endblock %}
