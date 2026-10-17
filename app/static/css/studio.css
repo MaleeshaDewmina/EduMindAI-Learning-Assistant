@@ -182,3 +182,23 @@ label {color:var(--text-main);font-size:12px;}
 }
 @media (max-width:375px){.stats-grid{grid-template-columns:1fr;}.hero-actions a{width:100%;justify-content:center;}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important;}}
+
+/* Phase 8 — Keep the fixed-sidebar desktop layout inside the viewport.
+   The left sidebar is position:fixed (outside flex layout). Long AI tables
+   were forcing the main flex item wider than the available viewport width.
+   Constrain the main region without clipping tables; tables scroll locally. */
+.dashboard-layout { min-width: 0; }
+.main-content {
+  box-sizing: border-box;
+  min-width: 0;
+  width: calc(100% - 272px);
+  max-width: calc(100% - 272px);
+  flex: 1 1 0;
+}
+.chat-studio,
+.chat-studio-window,
+.chat-studio-window .message-bubble,
+.chat-studio-window .ai-response { min-width: 0; }
+@media (max-width: 900px) {
+  .main-content { width: 100%; max-width: 100%; }
+}
