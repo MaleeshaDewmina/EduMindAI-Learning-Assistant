@@ -61,5 +61,18 @@ def create_app(test_config=None):
             return redirect(url_for("dashboard.index"))
         return redirect(url_for("auth.login"))
 
+    @app.after_request
+    def add_security_headers(response):
+        # Lightweight browser protections. Avoid an untested CSP that could
+        # block the app's existing third-party styles and inline scripts.
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+        if current_user.is_authenticated and response.mimetype == "text/html":
+            # Account-specific history and evaluation pages must not be
+            # shared by intermediary caches or kept as browser cache entries.
+            response.headers["Cache-Control"] = "private, no-store"
+        return response
+
     # The old unauthenticated /db-test diagnostic was removed. Never expose DB errors.
     return app

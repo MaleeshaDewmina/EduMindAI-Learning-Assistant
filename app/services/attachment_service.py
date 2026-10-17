@@ -12,6 +12,8 @@ from werkzeug.utils import secure_filename
 MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024
 MAX_DOCUMENT_CHARS = 10000
 MAX_DOCX_UNCOMPRESSED = 16 * 1024 * 1024
+MAX_DOCX_MEMBERS = 1000
+MAX_PDF_PAGES = 25
 ALLOWED_EXTENSIONS = {".pdf", ".docx", ".txt", ".md"}
 
 
@@ -50,7 +52,9 @@ def extract_reference_document(upload):
                 raise AttachmentError("Password-protected PDFs are not supported.")
             chunks = []
             total = 0
-            for page in reader.pages[:25]:
+            page_count = len(reader.pages)
+            truncated_by_pages = page_count > MAX_PDF_PAGES
+            for page in reader.pages[:MAX_PDF_PAGES]:
                 part = (page.extract_text() or "")[:MAX_DOCUMENT_CHARS + 1]
                 chunks.append(part)
                 total += len(part)
@@ -62,8 +66,11 @@ def extract_reference_document(upload):
                 raise AttachmentError("This file is not a valid DOCX document.")
             with ZipFile(BytesIO(binary)) as archive:
                 names = {item.filename for item in archive.infolist()}
-                total_uncompressed = sum(item.file_size for item in archive.infolist())
-                if "word/document.xml" not in names or total_uncompressed > MAX_DOCX_UNCOMPRESSED:
+                infos = archive.infolist()
+                total_uncompressed = sum(item.file_size for item in infos)
+                if ("word/document.xml" not in names
+                        or len(infos) > MAX_DOCX_MEMBERS
+                        or total_uncompressed > MAX_DOCX_UNCOMPRESSED):
                     raise AttachmentError("The DOCX document is invalid or too complex to process safely.")
             from docx import Document
             doc = Document(BytesIO(binary))
@@ -101,5 +108,7 @@ def extract_reference_document(upload):
     text = text.replace("\x00", "").strip()
     if not text:
         raise AttachmentError("No readable text was found. For scanned PDFs, use a text-based version.")
-    is_truncated = len(text) > MAX_DOCUMENT_CHARS
+    is_truncated = len(text) > MAX_DOCUMENT_CHARS or (
+        extension == ".pdf" and truncated_by_pages
+    )
     return safe_name, text[:MAX_DOCUMENT_CHARS], is_truncated
