@@ -20,6 +20,19 @@ class Config:
         f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+        # Secure connection to Aiven MySQL
+    DB_SSL_CA_PATH = os.getenv("DB_SSL_CA_PATH")
+
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "pool_pre_ping": True,
+        "connect_args": {
+            "ssl_ca": DB_SSL_CA_PATH,
+            "ssl_verify_cert": True,
+            "ssl_verify_identity": True,
+        },
+    } if DB_SSL_CA_PATH else {
+        "pool_pre_ping": True
+    }
     GROQ_API_KEY = os.getenv("GROQ_API_KEY")
     # Groq retired llama-3.1-8b-instant for developer/free accounts in August 2026.
     GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
