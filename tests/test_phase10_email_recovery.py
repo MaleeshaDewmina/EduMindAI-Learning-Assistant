@@ -214,7 +214,7 @@ def test_https_forgot_password_requires_and_accepts_same_origin_referrer(client,
     response = client.get("/auth/forgot-password", base_url="https://edumind.example.test")
     assert response.status_code == 200
     assert response.headers["Referrer-Policy"] == "strict-origin"
-    match = re.search(rb'name="csrf_token"\\s+value="([^"]+)"', response.data)
+    match = re.search(rb'name="csrf_token"[^>]*value="([^"]+)"', response.data)
     assert match
     token = match.group(1).decode()
     missing = client.post("/auth/forgot-password",
