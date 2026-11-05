@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}?v=1">
+<div class="dashboard-layout">
+    {% include "partials/sidebar.html" %}
+    <main class="main-content">
+        <div class="topbar"><div>
+            <span class="admin-eyebrow">ACCOUNT GOVERNANCE</span>
+            <h1>{{ 'Super Admin' if current_user.role == 'superadmin' else 'Admin' }} Console</h1>
+            <p>Create authorised staff accounts and manage access without sharing passwords.</p>
+        </div></div>
+
+        <div class="admin-overview">
+            <div class="admin-stat"><strong>{{ counts.student }}</strong><span>Students</span></div>
+            <div class="admin-stat"><strong>{{ counts.lecturer }}</strong><span>Lecturers</span></div>
+            <div class="admin-stat"><strong>{{ counts.admin }}</strong><span>Admins</span></div>
+            <div class="admin-stat"><strong>{{ counts.superadmin }}</strong><span>Super Admins</span></div>
+        </div>
+
+        <section class="admin-panel">
+            <div class="admin-section-head">
+                <div><h2>Create a staff account</h2>
+                <p>New staff set their own password through a time-limited email link.</p></div>
+            </div>
+            <form method="POST" action="{{ url_for('admin.create_account') }}" class="admin-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="admin-field"><label for="admin-full-name">Full name</label>
+                    <input id="admin-full-name" name="full_name" required maxlength="100" autocomplete="off" placeholder="Staff member's full name"></div>
+                <div class="admin-field"><label for="admin-email">Work email</label>
+                    <input id="admin-email" name="email" type="email" required maxlength="120" autocomplete="off" placeholder="staff@example.edu"></div>
+                <div class="admin-field"><label for="admin-role">Account role</label>
+                    <select id="admin-role" name="role" required>
+                        <option value="lecturer">Lecturer — student-authorised reports</option>
+                        {% if can_create_admin %}<option value="admin">Admin — manage Lecturer accounts</option>{% endif %}
+                    </select></div>
+                <div class="admin-field"><label for="admin-current-password">Confirm with your password</label>
+                    <input id="admin-current-password" name="current_password" type="password" autocomplete="current-password" required></div>
+                <div class="admin-form-actions">
+                    <button type="submit" class="btn primary-btn">Create account &amp; send access link</button>
+                    <span>Only Super Admin can create Admin accounts.</span>
+                </div>
+            </form>
+        </section>
+
+        <section class="admin-panel">
+            <div class="admin-section-head">
+                <div><h2>Accounts</h2>
+                <p>Showing up to 200 most recent accounts. Changes are recorded in the audit log.</p></div>
+            </div>
+            <div class="table-responsive">
+                <table class="table custom-table admin-table">
+                    <thead><tr><th>Account</th><th>Role</th><th>Status</th><th>Access controls</th></tr></thead>
+                    <tbody>
+                    {% for account in accounts %}
+                    <tr>
+                        <td><strong>{{ account.full_name }}</strong><small>{{ account.email }}</small></td>
+                        <td><span class="admin-role">{{ account.role|replace('_', ' ')|title }}</span></td>
+                        <td><span class="admin-status {{ 'is-active' if account.is_active else 'is-disabled' }}">{{ 'Active' if account.is_active else 'Suspended' }}</span></td>
+                        <td>
+                            {% set manageable = account.user_id != current_user.user_id and (
+                                (current_user.role == 'superadmin' and account.role != 'superadmin') or
+                                (current_user.role == 'admin' and account.role == 'lecturer')
+                            ) %}
+                            {% if manageable %}
+                            <form method="POST" action="{{ url_for('admin.update_status', user_id=account.user_id) }}" class="admin-inline-form">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="active" value="{{ 'false' if account.is_active else 'true' }}">
+                                <label class="visually-hidden" for="password-{{ account.user_id }}">Confirm current password</label>
+                                <input id="password-{{ account.user_id }}" name="current_password" type="password" required autocomplete="current-password" placeholder="Your password">
+                                <button type="submit" class="btn btn-sm {{ 'btn-outline-danger' if account.is_active else 'btn-outline-success' }}"
+                                        onclick="return confirm('{{ 'Suspend' if account.is_active else 'Reactivate' }} this account?')">
+                                    {{ 'Suspend' if account.is_active else 'Reactivate' }}
+                                </button>
+                            </form>
+                            {% else %}<span class="admin-locked">Protected</span>{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <p class="admin-boundary">Administrator access covers account governance only. Student chats and questionnaire answers remain private. Lecturer reports still require the student's permission.</p>
+    </main>
+</div>
+{% endblock %}
