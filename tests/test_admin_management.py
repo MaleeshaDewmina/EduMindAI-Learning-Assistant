@@ -81,7 +81,8 @@ def test_superadmin_can_create_admin_with_email_setup(client, app):
         assert UserActivityLog.query.filter_by(activity_name="Staff account created").count() == 1
     invitation = app.extensions["edumind_test_outbox"][-1]
     assert invitation["to"] == "newstaff@example.test"
-    assert "reset-password" in invitation["body"]\n    assert "Set your password" in invitation["body"]
+    assert "reset-password" in invitation["body"]
+    assert "Set your password" in invitation["body"]
 
 
 def test_admin_can_create_lecturer_not_admin_or_superadmin(client, app):
