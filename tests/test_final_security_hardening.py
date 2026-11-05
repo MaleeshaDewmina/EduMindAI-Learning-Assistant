@@ -4,7 +4,48 @@ from datetime import datetime, timedelta
 from app.extensions import db
 from app.models.email_action_event import EmailActionEvent
 from app.models.user import User
-from tests.test_admin_management import PW, seed, sign_in, create, token
+import re
+from werkzeug.security import generate_password_hash
+
+PW = "DemoSecurePassword123"
+
+
+def token(client, path):
+    response = client.get(path)
+    assert response.status_code == 200
+    match = re.search(rb'name="csrf_token"\\s+value="([^"]+)"', response.data)
+    assert match
+    return match.group(1).decode()
+
+
+def seed(app):
+    with app.app_context():
+        for name, role in (
+            ("student", "student"),
+            ("teacher", "lecturer"),
+            ("operator", "admin"),
+            ("owner", "superadmin"),
+        ):
+            db.session.add(User(
+                full_name=name.capitalize(), email=f"{name}@example.test",
+                password_hash=generate_password_hash(PW), role=role, is_active=True,
+            ))
+        db.session.commit()
+
+
+def sign_in(client, email):
+    return client.post("/auth/login", data={
+        "csrf_token": token(client, "/auth/login"),
+        "email": email, "password": PW,
+    }, follow_redirects=True)
+
+
+def create(client, role, email):
+    return client.post("/admin/accounts", data={
+        "csrf_token": token(client, "/admin/"),
+        "full_name": "New Staff", "email": email,
+        "role": role, "current_password": PW,
+    }, follow_redirects=True)
 
 
 def _bad_login(client, email, password="not-the-password"):
