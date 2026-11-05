@@ -10,6 +10,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from app.extensions import db
 from app.models.user import User
 from app.services.analytics_service import log_activity
+from app.services.login_protection import too_many_login_failures, record_failed_login
 
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
@@ -100,6 +101,9 @@ def login():
     if request.method == "POST":
         email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "")
+        if too_many_login_failures(email):
+            flash("Too many login attempts. Please try again in 15 minutes.", "warning")
+            return render_template("auth/login.html"), 429
         user = User.query.filter_by(email=email).first() if email else None
 
         if user and user.is_active and check_password_hash(user.password_hash, password):
@@ -112,6 +116,7 @@ def login():
             flash("Login successful.", "success")
             return redirect(url_for("admin.index" if current_user.role in ("admin", "superadmin") else ("lecturer.index" if current_user.role == "lecturer" else "dashboard.index")))
 
+        record_failed_login(email)
         flash("Invalid email or password.", "danger")
         return redirect(url_for("auth.login"))
 
