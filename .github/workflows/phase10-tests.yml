@@ -1,0 +1,23 @@
+name: Phase 10 secure email regression
+on:
+  push:
+    branches: [feature/secure-email-reports-recovery]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SECRET_KEY: "automated-testing-secret-only-please-do-not-use-on-live-server"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -r requirements.txt pytest
+      - run: python -m pytest tests -q
