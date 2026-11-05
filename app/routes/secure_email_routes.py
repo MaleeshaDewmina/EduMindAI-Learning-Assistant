@@ -14,6 +14,7 @@ from app.services.email_actions import (
     allow_report_send, report_email_body
 )
 from app.services.email_delivery import send_email, EmailDeliveryError
+from app.services.report_email_html import report_email_html
 
 mail_bp = Blueprint("mail", __name__)
 
@@ -107,6 +108,10 @@ def email_report():
             current_user.email,
             "EduMind AI — Learning progress report",
             report_email_body(student, report, recipient_role),
+            html_body=report_email_html(
+                student, report, recipient_role,
+                current_app.config.get("APP_PUBLIC_URL", ""),
+            ),
         )
     except EmailDeliveryError:
         current_app.logger.warning("Report email delivery unavailable")
