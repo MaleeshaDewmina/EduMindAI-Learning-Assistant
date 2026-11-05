@@ -32,8 +32,16 @@ def staff_only(fn):
     return wrapped
 
 
+def _can_create(role):
+    """Only explicitly supported staff roles can be provisioned."""
+    return (current_user.role == "superadmin" and role in ("admin", "lecturer")) or (
+        current_user.role == "admin" and role == "lecturer"
+    )
+
+
 def _can_manage(role):
-    return (current_user.role == "superadmin" and role != "superadmin") or (
+    """Existing accounts: Super Admin can manage non-superadmin roles."""
+    return (current_user.role == "superadmin" and role in ("student", "admin", "lecturer")) or (
         current_user.role == "admin" and role == "lecturer"
     )
 
@@ -55,14 +63,20 @@ def _audit(action, target_id):
 @admin_bp.route("/")
 @staff_only
 def index():
-    # Limit detail rows; summary counts are aggregated without exposing student records.
-    accounts = (User.query.order_by(User.created_at.desc(), User.user_id.desc())
+    # Admins may manage Lecturer accounts only: never fetch student or
+    # Super Admin identity details into an ordinary Admin response.
+    is_superadmin = current_user.role == "superadmin"
+    visible_accounts = User.query if is_superadmin else User.query.filter_by(role="lecturer")
+    accounts = (visible_accounts.order_by(User.created_at.desc(), User.user_id.desc())
                 .limit(200).all())
-    counts = {role: User.query.filter_by(role=role).count()
-              for role in ("student", "lecturer", "admin", "superadmin")}
+    if is_superadmin:
+        counts = {role: User.query.filter_by(role=role).count()
+                  for role in ("student", "lecturer", "admin", "superadmin")}
+    else:
+        counts = {"lecturer": User.query.filter_by(role="lecturer").count()}
     return render_template(
         "admin/index.html", accounts=accounts, counts=counts,
-        can_create_admin=current_user.role == "superadmin",
+        can_create_admin=is_superadmin,
     )
 
 
@@ -72,7 +86,7 @@ def create_account():
     role = request.form.get("role", "").strip()
     name = request.form.get("full_name", "").strip()
     email = request.form.get("email", "").strip().lower()
-    if not _can_manage(role):
+    if not _can_create(role):
         abort(403)
     if not _reauthenticated():
         flash("Current password is incorrect. No changes were made.", "danger")
