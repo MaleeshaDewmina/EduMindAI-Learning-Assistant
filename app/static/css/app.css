@@ -1127,3 +1127,61 @@ textarea {
     .chat-controls form { width: 100%; }
     .chat-controls button { width: 100%; }
 }
+
+
+/* Shared flash notifications: responsive, dismissible, and visually unobtrusive. */
+.flash-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: min(380px, calc(100vw - 24px));
+    max-height: calc(100dvh - 24px);
+    overflow-y: auto;
+    pointer-events: none;
+}
+.flash-notification {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    margin: 0;
+    padding: 14px 12px 14px 18px;
+    pointer-events: auto;
+    overflow-wrap: anywhere;
+    transition: opacity 220ms ease, transform 220ms ease;
+}
+.flash-notification.is-dismissing {
+    opacity: 0;
+    transform: translateY(-8px);
+    pointer-events: none;
+}
+.flash-message {
+    flex: 1;
+    padding-top: 1px;
+    line-height: 1.55;
+}
+.flash-dismiss {
+    display: inline-flex;
+    flex: 0 0 28px;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    margin-top: -4px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: .75;
+}
+.flash-dismiss:hover { opacity: 1; background: rgba(0, 0, 0, .07); }
+.flash-dismiss:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+@media (max-width: 600px) {
+    .flash-wrapper { top: 12px; right: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .flash-notification { transition: none; }
+}

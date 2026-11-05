@@ -32,10 +32,17 @@
 <div class="app-shell">
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-            <div class="flash-wrapper">
+            <div class="flash-wrapper" aria-label="Notifications">
                 {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} shadow-sm">
-                        {{ message }}
+                    <div class="alert alert-{{ category }} flash-notification shadow-sm"
+                         data-flash-notification
+                         data-flash-category="{{ category }}"
+                         role="{{ 'alert' if category in ('danger', 'error', 'warning') else 'status' }}"
+                         aria-atomic="true">
+                        <span class="flash-message">{{ message }}</span>
+                        <button type="button" class="flash-dismiss"
+                                data-dismiss-flash aria-label="Dismiss notification"
+                                title="Dismiss notification">&times;</button>
                     </div>
                 {% endfor %}
             </div>
@@ -85,5 +92,6 @@
 </script>
 
 <script src="{{ url_for('static', filename='js/studio.js') }}?v=1" defer></script>
+<script src="{{ url_for('static', filename='js/flash_notifications.js') }}?v=1" defer></script>
 </body>
 </html>
