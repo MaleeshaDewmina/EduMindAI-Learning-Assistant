@@ -85,18 +85,18 @@ def request_password_reset(email, invitation=False):
     if invitation:
         subject = "Set up your EduMind AI staff account"
         text = (
-            "An EduMind AI administrator created a staff account for this email address.\\n\\n"
-            f"Set your password within 30 minutes:\\n{link}\\n\\n"
+            "An EduMind AI administrator created a staff account for this email address.\n\n"
+            f"Set your password within 30 minutes:\n{link}\n\n"
             "If you did not expect this invitation, ignore it and contact the system administrator. "
-            "This link works once only.\\n"
+            "This link works once only.\n"
         )
     else:
         subject = "Reset your EduMind AI password"
         text = (
-            "A password reset was requested for your EduMind AI account.\\n\\n"
-            f"Open this link within 30 minutes:\\n{link}\\n\\n"
+            "A password reset was requested for your EduMind AI account.\n\n"
+            f"Open this link within 30 minutes:\n{link}\n\n"
             "If you did not request this reset, ignore the email. "
-            "The link works once only.\\n"
+            "The link works once only.\n"
         )
     send_email(user.email, subject, text)
 
