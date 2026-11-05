@@ -42,3 +42,15 @@ class Config:
     # Enable only after deploying behind HTTPS (localhost development uses HTTP).
     SESSION_COOKIE_SECURE = os.getenv("HTTPS_ENABLED", "false").lower() == "true"
     MAX_CONTENT_LENGTH = 6 * 1024 * 1024  # Allows a single 5 MiB reference document plus form overhead.
+
+    # Phase 10: email delivery. Set these only in .env / alwaysdata environment.
+    APP_PUBLIC_URL = os.getenv("APP_PUBLIC_URL", "")
+    EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "smtp")
+    EMAIL_FROM = os.getenv("EMAIL_FROM", "")
+    BREVO_API_KEY = os.getenv("BREVO_API_KEY", "")
+    SMTP_HOST = os.getenv("SMTP_HOST", "")
+    SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+    SMTP_USER = os.getenv("SMTP_USER", "")
+    SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
+    SMTP_USE_SSL = os.getenv("SMTP_USE_SSL", "false").lower() == "true"
+    SMTP_USE_STARTTLS = os.getenv("SMTP_USE_STARTTLS", "true").lower() == "true"
