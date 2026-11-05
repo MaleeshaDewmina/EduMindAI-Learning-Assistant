@@ -105,6 +105,7 @@ def login():
         if user and user.is_active and check_password_hash(user.password_hash, password):
             login_user(user)
             session['_password_fp'] = hashlib.sha256(user.password_hash.encode('utf-8')).hexdigest()
+            session["_role_at_login"] = user.role
             user.last_login = datetime.utcnow()
             db.session.commit()
             log_activity(user.user_id, "Login", "User logged into EduMind AI.")
