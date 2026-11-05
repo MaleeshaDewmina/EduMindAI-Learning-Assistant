@@ -7,9 +7,9 @@ Neither role can see private student content or override sharing consent.
 import secrets
 from functools import wraps
 
-from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.extensions import db
@@ -97,7 +97,19 @@ def create_account():
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
-        flash("Account already exists. No changes were made.", "warning")
+        flash("This account could not be created because its email is already registered.", "warning")
+        return redirect(url_for("admin.index"))
+    except SQLAlchemyError as exc:
+        # A lock-wait timeout leaves SQLAlchemy's transaction unusable until
+        # rollback; never allow after_request handlers to touch a failed session.
+        db.session.rollback()
+        # Avoid logging SQL parameters (email addresses and password hashes).
+        current_app.logger.error("Staff account insert failed: %s", type(exc).__name__)
+        flash(
+            "The database could not save the account right now. Check the account "
+            "list before trying again, and ask the administrator to review any open transactions.",
+            "danger",
+        )
         return redirect(url_for("admin.index"))
 
     try:
@@ -124,7 +136,13 @@ def update_status(user_id):
     if desired not in ("true", "false"):
         abort(400)
     target.is_active = desired == "true"
-    _audit("Account reactivated" if target.is_active else "Account suspended", target.user_id)
-    db.session.commit()
+    try:
+        _audit("Account reactivated" if target.is_active else "Account suspended", target.user_id)
+        db.session.commit()
+    except SQLAlchemyError as exc:
+        db.session.rollback()
+        current_app.logger.error("Staff account status update failed: %s", type(exc).__name__)
+        flash("Account status could not be saved. Check its current status before retrying.", "danger")
+        return redirect(url_for("admin.index"))
     flash("Account status updated.", "success")
     return redirect(url_for("admin.index"))
