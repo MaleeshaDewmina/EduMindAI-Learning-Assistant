@@ -12,15 +12,10 @@
         </div>
 
         <section class="form-card max-card">
-            <div class="alert alert-warning" role="note">
-                <strong>Research instrument — {{ instrument_version }} (draft).</strong>
-                The questionnaire and participant research process require supervisor and institutional approval before actual study recruitment.
-                These are project-written exploratory items, not a validated psychological scale.
-            </div>
             {% if evaluation_type == 'PreTest' %}
-                <p><strong>Before system use:</strong> Use a fresh account for the genuine study baseline. If you have already used EduMind AI for studying, tell the researcher; this cannot be a genuine before-use measurement.</p>
+                <p><strong>Before system use:</strong> Answer based on your current learning habits.</p>
             {% else %}
-                <p><strong>After system use:</strong> Reflect on your current motivation and learning beliefs. The first nine questions are intentionally identical to the pre-test. The last three questions concern your experience with EduMind AI.</p>
+                <p><strong>After system use:</strong> Think about your experience after using EduMind AI.</p>
             {% endif %}
             <p>Rate each statement: <strong>1 = Strongly disagree</strong>, <strong>2 = Disagree</strong>, <strong>3 = Neither agree nor disagree</strong>, <strong>4 = Agree</strong>, <strong>5 = Strongly agree</strong>.</p>
             <form method="POST" action="{{ url_for('evaluation.pre_test' if evaluation_type == 'PreTest' else 'evaluation.post_test') }}">
@@ -46,7 +41,7 @@
                 {% endfor %}
                 <section class="mb-4">
                     <h3>{{ 'Expected usefulness' if evaluation_type == 'PreTest' else 'Experience of EduMind AI' }}</h3>
-                    <p class="text-muted">These questions are stage-specific and will <strong>not</strong> be included in the paired motivation, confidence or growth mindset comparison.</p>
+                    <p class="text-muted">A few additional questions about your experience.</p>
                     {% for item in extra_items %}
                         <div class="question-block mb-3">
                             <label for="rating-{{ item.code }}" class="form-label"><strong>{{ item.code }}.</strong> {{ item.text }}</label>

@@ -50,6 +50,7 @@ def create_app(test_config=None):
     from app.routes.evaluation_routes import evaluation_bp
     from app.routes.lecturer_routes import lecturer_bp
     from app.routes.secure_email_routes import mail_bp
+    from app.routes.admin_routes import admin_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -60,6 +61,7 @@ def create_app(test_config=None):
     app.register_blueprint(evaluation_bp)
     app.register_blueprint(lecturer_bp)
     app.register_blueprint(mail_bp)
+    app.register_blueprint(admin_bp)
 
     @app.before_request
     def check_password_session():
@@ -68,10 +70,17 @@ def create_app(test_config=None):
         import hashlib
         from flask_login import logout_user
         if current_user.is_authenticated:
+            if not current_user.is_active:
+                logout_user()
+                session.pop("_password_fp", None)
+                session.pop("_role_at_login", None)
+                return redirect(url_for("auth.login"))
             current_fp = hashlib.sha256(current_user.password_hash.encode('utf-8')).hexdigest()
-            if session.get('_password_fp') != current_fp:
+            if (session.get('_password_fp') != current_fp
+                    or session.get('_role_at_login') != current_user.role):
                 logout_user()
                 session.pop('_password_fp', None)
+                session.pop('_role_at_login', None)
                 return redirect(url_for('auth.login'))
 
     @app.before_request
@@ -85,10 +94,22 @@ def create_app(test_config=None):
                 and request.blueprint != "lecturer"):
             return redirect(url_for("lecturer.index"))
 
+    @app.before_request
+    def admins_stay_in_admin_area():
+        # Other legacy routes were originally login-protected only and assume
+        # every non-lecturer account is a student.
+        if (current_user.is_authenticated
+                and current_user.role in ("admin", "superadmin")
+                and request.endpoint not in ("auth.logout", "static", "home")
+                and request.blueprint != "admin"):
+            return redirect(url_for("admin.index"))
+
     @app.route("/")
     def home():
         if current_user.is_authenticated:
-            return redirect(url_for("lecturer.index" if current_user.role == "lecturer" else "dashboard.index"))
+            return redirect(url_for("admin.index" if current_user.role in ("admin", "superadmin")
+                                    else "lecturer.index" if current_user.role == "lecturer"
+                                    else "dashboard.index"))
         return redirect(url_for("auth.login"))
 
     @app.after_request

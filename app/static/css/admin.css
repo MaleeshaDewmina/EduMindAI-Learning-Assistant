@@ -1,0 +1,29 @@
+.admin-eyebrow{display:block;color:#5750db;letter-spacing:.13em;font-weight:800;font-size:.73rem;margin-bottom:9px}
+.admin-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:24px 0}
+.admin-stat,.admin-panel{background:var(--surface,#fff);border:1px solid rgba(105,119,166,.18);border-radius:20px;box-shadow:0 8px 28px rgba(22,32,76,.035)}
+.admin-stat{padding:23px;display:flex;flex-direction:column;gap:6px}
+.admin-stat strong{font-size:2rem;color:var(--text-main,#212e58);line-height:1.15}
+.admin-stat span,.admin-section-head p{color:var(--text-muted,#6b7897);font-size:.9rem}
+.admin-panel{padding:24px;margin-top:22px}
+.admin-section-head h2{font-size:1.25rem;margin:0 0 6px}
+.admin-section-head p{margin:0 0 20px}
+.admin-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 20px}
+.admin-field{display:flex;flex-direction:column;gap:8px}
+.admin-field label{font-size:.86rem;font-weight:700}
+.admin-field input,.admin-field select,.admin-inline-form input{min-width:0;width:100%;height:46px;border:1px solid #dfe4f1;border-radius:11px;background:var(--surface,#fff);color:var(--text-main,#202f59);padding:0 13px}
+.admin-field input:focus,.admin-field select:focus,.admin-inline-form input:focus{outline:2px solid #7068f3;outline-offset:1px}
+.admin-form-actions{grid-column:1/-1;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.admin-form-actions span,.admin-boundary{font-size:.83rem;color:var(--text-muted,#697795)}
+.admin-table td{vertical-align:middle}
+.admin-table td strong{display:block}
+.admin-table td small{display:block;color:var(--text-muted,#697795);font-size:.78rem;margin-top:5px}
+.admin-role{display:inline-block;border-radius:40px;padding:5px 11px;background:#f1efff;color:#4a42aa;font-size:.8rem;font-weight:700}
+.admin-status{font-size:.83rem;font-weight:700;color:#a45c21}
+.admin-status.is-active{color:#137358}
+.admin-inline-form{display:flex;align-items:center;gap:9px;max-width:330px}
+.admin-inline-form input{height:38px;max-width:185px}
+.admin-inline-form button{white-space:nowrap}
+.admin-locked{color:var(--text-muted,#697795);font-size:.83rem}
+.admin-boundary{padding:16px 0}
+@media(max-width:960px){.admin-overview{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.admin-form{grid-template-columns:1fr}.admin-overview{gap:10px}.admin-stat{padding:15px}.admin-panel{padding:16px}.admin-inline-form{flex-wrap:wrap}}

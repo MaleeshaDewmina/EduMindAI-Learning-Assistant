@@ -30,7 +30,7 @@ def valid_email(email):
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for("lecturer.index" if current_user.role == "lecturer" else "dashboard.index"))
+        return redirect(url_for("admin.index" if current_user.role in ("admin", "superadmin") else ("lecturer.index" if current_user.role == "lecturer" else "dashboard.index")))
 
     if request.method == "POST":
         full_name = request.form.get("full_name", "").strip()
@@ -95,7 +95,7 @@ def register():
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for("lecturer.index" if current_user.role == "lecturer" else "dashboard.index"))
+        return redirect(url_for("admin.index" if current_user.role in ("admin", "superadmin") else ("lecturer.index" if current_user.role == "lecturer" else "dashboard.index")))
 
     if request.method == "POST":
         email = request.form.get("email", "").strip().lower()
@@ -105,11 +105,12 @@ def login():
         if user and user.is_active and check_password_hash(user.password_hash, password):
             login_user(user)
             session['_password_fp'] = hashlib.sha256(user.password_hash.encode('utf-8')).hexdigest()
+            session["_role_at_login"] = user.role
             user.last_login = datetime.utcnow()
             db.session.commit()
             log_activity(user.user_id, "Login", "User logged into EduMind AI.")
             flash("Login successful.", "success")
-            return redirect(url_for("lecturer.index" if current_user.role == "lecturer" else "dashboard.index"))
+            return redirect(url_for("admin.index" if current_user.role in ("admin", "superadmin") else ("lecturer.index" if current_user.role == "lecturer" else "dashboard.index")))
 
         flash("Invalid email or password.", "danger")
         return redirect(url_for("auth.login"))
