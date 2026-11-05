@@ -10,11 +10,16 @@
             <p>Create authorised staff accounts and manage access without sharing passwords.</p>
         </div></div>
 
-        <div class="admin-overview">
+        <div class="admin-overview{{ ' admin-overview-restricted' if not can_create_admin else '' }}">
+            {% if can_create_admin %}
             <div class="admin-stat"><strong>{{ counts.student }}</strong><span>Students</span></div>
             <div class="admin-stat"><strong>{{ counts.lecturer }}</strong><span>Lecturers</span></div>
             <div class="admin-stat"><strong>{{ counts.admin }}</strong><span>Admins</span></div>
             <div class="admin-stat"><strong>{{ counts.superadmin }}</strong><span>Super Admins</span></div>
+            {% else %}
+            <div class="admin-stat"><strong>{{ counts.lecturer }}</strong><span>Lecturers you can manage</span></div>
+            <div class="admin-stat"><strong>Staff only</strong><span>Student and administrator identities are not shown in this view</span></div>
+            {% endif %}
         </div>
 
         <section class="admin-panel">
@@ -45,7 +50,7 @@
         <section class="admin-panel">
             <div class="admin-section-head">
                 <div><h2>Accounts</h2>
-                <p>Showing up to 200 most recent accounts. Changes are recorded in the audit log.</p></div>
+                <p>Showing up to 200 most recent {{ 'accounts' if can_create_admin else 'Lecturer accounts' }}. Changes are recorded in the audit log.</p></div>
             </div>
             <div class="table-responsive">
                 <table class="table custom-table admin-table">
