@@ -7,20 +7,14 @@
         <div class="topbar">
             <div>
                 <h1>Research Evaluation</h1>
-                <p>Matched pre/post exploratory ratings and separate post-use experience feedback.</p>
+                <p>Share how your learning experience changes over time.</p>
             </div>
         </div>
-        <div class="alert alert-warning" role="note">
-            <strong>{{ instrument_version }} — draft questionnaire.</strong>
-            Do not use for participant recruitment or data collection until Ms. Hashini Fernando and the appropriate university ethics process approve the study.
-            These ratings are self-reports, not the behavioural motivation indicator shown elsewhere.
-        </div>
-
         <div class="evaluation-action-grid">
             <section class="evaluation-card">
                 <span class="feedback-type">Step 1</span>
                 <h3>Pre-Test — Before Use</h3>
-                <p>Record the baseline using nine matched study-attitude questions plus one expected-usefulness question.</p>
+                <p>Tell us about your study motivation and confidence before you begin.</p>
                 {% if pre_test %}
                     <p><strong>Submitted:</strong> {{ pre_test.submitted_at.strftime('%Y-%m-%d %H:%M') }}</p>
                     <span class="badge-soft">Completed for this account</span>
@@ -31,21 +25,21 @@
             <section class="evaluation-card">
                 <span class="feedback-type">Step 2</span>
                 <h3>Post-Test — After Use</h3>
-                <p>Repeat the nine identical statements after a defined use period, then rate actual usability and feedback relevance.</p>
+                <p>Reflect on your learning experience after using EduMind AI.</p>
                 {% if post_test %}
                     <p><strong>Submitted:</strong> {{ post_test.submitted_at.strftime('%Y-%m-%d %H:%M') }}</p>
                     <span class="badge-soft">Completed for this account</span>
                 {% elif pre_test %}
                     <a href="{{ url_for('evaluation.post_test') }}" class="btn primary-btn w-100 mt-3">Open Post-Test</a>
                 {% else %}
-                    <p class="text-muted">Complete the revised pre-test first.</p>
+                    <p class="text-muted">Complete your Pre-Test first.</p>
                 {% endif %}
             </section>
         </div>
 
         <section class="table-card mt-4">
-            <h3>Matched questionnaire summary — item means (1 to 5)</h3>
-            <p>Each construct uses the mean of three identically worded questions. A difference can be shown only once a matching post-test is available. Changes are descriptive; this single-account view cannot establish effectiveness or causation.</p>
+            <h3>Your before-and-after responses</h3>
+            <p>See your self-reported changes once both questionnaires are complete.</p>
             <div class="table-responsive">
                 <table class="table custom-table align-middle">
                     <thead><tr><th>Exploratory construct</th><th>Pre-test</th><th>Post-test</th><th>Difference</th></tr></thead>
@@ -64,7 +58,7 @@
         </section>
 
         <section class="table-card mt-4">
-            <h3>Stage-specific questions (not paired)</h3>
+            <h3>Your additional feedback</h3>
             <p>Pre-test expected usefulness: <strong>{% if pre_expectation is not none %}{{ pre_expectation }}/5{% else %}—{% endif %}</strong></p>
             {% if post_test %}
                 <p>Post-use ease of navigation: <strong>{{ post_usability.U1 }}/5</strong>;
@@ -77,7 +71,7 @@
 
         <section class="table-card feedback-history-card mt-4">
             <h3>Saved Evaluation Records</h3>
-            <p>Older questionnaire versions are retained but are <strong>not</strong> combined with the revised paired results.</p>
+            <p>Your previous submissions are listed below.</p>
             {% if responses %}
                 <div class="table-responsive">
                     <table class="table custom-table align-middle">
@@ -95,7 +89,7 @@
                     </table>
                 </div>
             {% else %}
-                <div class="empty-state"><h4>No evaluation responses yet</h4><p>Submit the revised pre-test when the protocol is approved and you are ready to collect data.</p></div>
+                <div class="empty-state"><h4>No evaluation responses yet</h4><p>Your submissions will appear here when completed.</p></div>
             {% endif %}
         </section>
     </main>
