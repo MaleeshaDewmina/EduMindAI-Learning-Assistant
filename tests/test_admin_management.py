@@ -189,3 +189,16 @@ def test_inactive_session_kicked_out(client, app):
     result = client.get("/admin/")
     assert result.status_code == 302
     assert result.location.startswith("/auth/login")
+
+
+def test_role_change_invalidates_existing_session(client, app):
+    ids = seed(app)
+    sign_in(client, "student@example.test")
+    with app.app_context():
+        person = db.session.get(User, ids["student@example.test"])
+        person.role = "superadmin"
+        db.session.commit()
+    response = client.get("/admin/")
+    assert response.status_code == 302
+    assert response.location.startswith("/auth/login")
+    assert b"Welcome back" in client.get("/auth/login").data or client.get("/auth/login").status_code == 200
