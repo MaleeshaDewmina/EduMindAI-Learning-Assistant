@@ -188,4 +188,4 @@ def test_inactive_session_kicked_out(client, app):
         db.session.commit()
     result = client.get("/admin/")
     assert result.status_code == 302
-    assert result.location.endswith("/auth/login")
+    assert result.location.startswith("/auth/login")
