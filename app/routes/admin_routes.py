@@ -93,7 +93,7 @@ def create_account():
     db.session.add(account)
     try:
         db.session.flush()
-        _audit("Admin account created", account.user_id)
+        _audit("Staff account created", account.user_id)
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
@@ -101,7 +101,7 @@ def create_account():
         return redirect(url_for("admin.index"))
 
     try:
-        request_password_reset(email)
+        request_password_reset(email, invitation=True)
     except EmailDeliveryError:
         flash("Account created, but invitation email could not be sent. The new user can use Forgot Password to request an access link.", "warning")
     else:
