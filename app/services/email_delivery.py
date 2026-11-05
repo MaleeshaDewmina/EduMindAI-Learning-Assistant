@@ -13,12 +13,12 @@ class EmailDeliveryError(RuntimeError):
     pass
 
 
-def send_email(recipient, subject, body):
+def send_email(recipient, subject, body, html_body=None):
     app = current_app
     # Guard all tests against accidentally contacting live SMTP/API services.
     if app.testing:
         app.extensions.setdefault("edumind_test_outbox", []).append(
-            {"to": recipient, "subject": subject, "body": body}
+            {"to": recipient, "subject": subject, "body": body, "html_body": html_body}
         )
         return
 
@@ -41,6 +41,7 @@ def send_email(recipient, subject, body):
                     "to": [{"email": recipient}],
                     "subject": subject,
                     "textContent": body,
+                    **({"htmlContent": html_body} if html_body else {}),
                 },
                 timeout=12,
             )
@@ -68,6 +69,8 @@ def send_email(recipient, subject, body):
     msg["To"] = recipient
     msg["Subject"] = subject
     msg.set_content(body)
+    if html_body:
+        msg.add_alternative(html_body, subtype="html")
 
     try:
         context = ssl.create_default_context()
