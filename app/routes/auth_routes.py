@@ -1,7 +1,8 @@
 from datetime import datetime
+import hashlib
 from email.utils import parseaddr
 
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, redirect, render_template, request, url_for, session
 from flask_login import current_user, login_required, login_user, logout_user
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -103,6 +104,7 @@ def login():
 
         if user and user.is_active and check_password_hash(user.password_hash, password):
             login_user(user)
+            session['_password_fp'] = hashlib.sha256(user.password_hash.encode('utf-8')).hexdigest()
             user.last_login = datetime.utcnow()
             db.session.commit()
             log_activity(user.user_id, "Login", "User logged into EduMind AI.")
