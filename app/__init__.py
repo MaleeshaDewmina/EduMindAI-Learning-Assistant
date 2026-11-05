@@ -73,11 +73,14 @@ def create_app(test_config=None):
             if not current_user.is_active:
                 logout_user()
                 session.pop("_password_fp", None)
+                session.pop("_role_at_login", None)
                 return redirect(url_for("auth.login"))
             current_fp = hashlib.sha256(current_user.password_hash.encode('utf-8')).hexdigest()
-            if session.get('_password_fp') != current_fp:
+            if (session.get('_password_fp') != current_fp
+                    or session.get('_role_at_login') != current_user.role):
                 logout_user()
                 session.pop('_password_fp', None)
+                session.pop('_role_at_login', None)
                 return redirect(url_for('auth.login'))
 
     @app.before_request
