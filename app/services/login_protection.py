@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 import hashlib
 import hmac
 
-from flask import current_app
+from flask import current_app, request
 from app.extensions import db
 from app.models.email_action_event import EmailActionEvent
 
@@ -48,7 +48,7 @@ def record_failed_login(email):
             purpose="login_failure",
             user_id=None,
             address_digest=digest,
-            ip_digest=digest,  # no raw IP required for this per-address policy
+            ip_digest=_login_address_digest("ip:" + (request.remote_addr or "unknown")),
             created_at=datetime.utcnow(),
         )
     )
