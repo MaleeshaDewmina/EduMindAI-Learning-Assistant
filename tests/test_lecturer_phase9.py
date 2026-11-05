@@ -213,3 +213,70 @@ def test_report_does_not_write_metrics_or_mutate_task_status(client, app):
         assert saved_task.status == 'Pending'
         assert MotivationScore.query.filter_by(user_id=uid).count() == scores_before
         assert UserActivityLog.query.filter_by(user_id=uid).count() == activities_before
+
+
+def test_redesigned_dashboard_empty_state(client, app):
+    seed(app)
+    login(client, 'lecturer@example.test')
+    response = client.get('/lecturer/')
+    assert response.status_code == 200
+    assert b'No shared student reports yet' in response.data
+    assert b'A clearer view of' in response.data
+    assert b'0 shared' in response.data
+
+
+def test_redesigned_dashboard_aggregates_only_authorised_students(client, app):
+    ids = seed(app)
+    login(client, 'one@example.test')
+    grant(client)
+    logout(client)
+    login(client, 'lecturer@example.test')
+
+    with app.app_context():
+        db.session.add(StudyTask(
+            user_id=ids['one@example.test'], title='Complete lesson',
+            deadline=datetime.utcnow() + timedelta(days=3), status='Completed',
+        ))
+        db.session.add(StudyTask(
+            user_id=ids['two@example.test'], title='Unshared private task',
+            deadline=datetime.utcnow() - timedelta(days=3), status='Overdue',
+        ))
+        db.session.add(UserActivityLog(
+            user_id=ids['one@example.test'], activity_name='Study',
+            created_at=datetime.utcnow(),
+        ))
+        db.session.commit()
+    response = client.get('/lecturer/')
+    assert response.status_code == 200
+    assert b'one@example.test' in response.data
+    assert b'two@example.test' not in response.data
+    assert b'Unshared private task' not in response.data
+    assert b'Task completion' in response.data
+    assert b'100.0%' in response.data
+    assert b'1 shared' in response.data
+    assert b'View full report' in response.data
+    assert b'Active this week' in response.data
+
+
+def test_redesigned_dashboard_shows_email_permission_only_when_granted(client, app):
+    seed(app)
+    login(client, 'one@example.test')
+    grant(client)
+    with app.app_context():
+        gid = LecturerAccessGrant.query.one().grant_id
+    logout(client)
+    login(client, 'lecturer@example.test')
+    first = client.get('/lecturer/')
+    assert b'Dashboard access only' in first.data
+    assert b'Email reports allowed' not in first.data
+    logout(client, '/lecturer/')
+    login(client, 'one@example.test')
+    response = client.post(f'/lecturer/sharing/email-permission/{gid}', data={
+        'csrf_token': csrf(client, '/lecturer/sharing'),
+        'email_allowed': 'on'
+    }, follow_redirects=True)
+    assert response.status_code == 200
+    logout(client)
+    login(client, 'lecturer@example.test')
+    second = client.get('/lecturer/')
+    assert b'Email reports allowed' in second.data

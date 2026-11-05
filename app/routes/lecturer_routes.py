@@ -40,8 +40,24 @@ def index():
         .filter_by(lecturer_id=current_user.user_id)
         .order_by(LecturerAccessGrant.granted_at.desc()).all())
     entries = [(grant.student, report_for_student(grant.student_id)) for grant in grants]
-    return render_template("lecturer/index.html", entries=entries,
-                           pre_count=sum(report["has_pre"] for _, report in entries))
+    total_tasks = sum(report["total"] for _, report in entries)
+    completed_tasks = sum(report["completed"] for _, report in entries)
+    summary = {
+        "shared_students": len(entries),
+        "total_tasks": total_tasks,
+        "completed_tasks": completed_tasks,
+        "overdue_tasks": sum(report["overdue"] for _, report in entries),
+        "active_students": sum(report["activity_events"] > 0 for _, report in entries),
+        "activity_events": sum(report["activity_events"] for _, report in entries),
+        "completion": round(100 * completed_tasks / total_tasks, 1) if total_tasks else 0.0,
+        "pre_count": sum(report["has_pre"] for _, report in entries),
+    }
+    return render_template(
+        "lecturer/index.html",
+        entries=entries,
+        summary=summary,
+        email_enabled_student_ids={grant.student_id for grant in grants if grant.email_allowed},
+    )
 
 
 @lecturer_bp.route("/students/<int:student_id>")
