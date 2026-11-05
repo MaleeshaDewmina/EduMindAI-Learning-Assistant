@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/email_features.css') }}">
 <div class="dashboard-layout">
     {% include "partials/sidebar.html" %}
 
@@ -15,6 +16,7 @@
             </div>
         </div>
 
+        <form method="POST" action="{{ url_for('mail.email_report') }}" class="email-report-actions"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="btn primary-btn">Email my progress report</button><span class="email-report-hint">Sent only to your registered email. No private chats or questionnaire answers are included.</span></form>
         <div class="stats-grid">
             <div class="stat-card">
                 <span>Completion Rate</span>

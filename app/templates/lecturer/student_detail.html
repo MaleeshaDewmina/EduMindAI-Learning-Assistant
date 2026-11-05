@@ -1,9 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/email_features.css') }}">
 <div class="dashboard-layout">
     {% include "partials/sidebar.html" %}
     <main class="main-content lecturer-page">
         <div class="topbar"><div><a class="lecturer-link" href="{{ url_for('lecturer.index') }}">&larr; All authorised students</a><h1>{{ student.full_name | e }}</h1><p>Read-only student progress report. Access can be revoked by the student.</p></div></div>
+        {% if email_allowed %}<form method="POST" action="{{ url_for('mail.email_report') }}" class="email-report-actions"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="student_id" value="{{ student.user_id }}"><button type="submit" class="btn primary-btn">Email this report to me</button><span class="email-report-hint">Sent only to your registered Lecturer email while the student permits emailed reports.</span></form>{% else %}<div class="lecturer-notice">This student has allowed a read-only dashboard view, but has not enabled report emails.</div>{% endif %}
         <div class="lecturer-cards lecturer-four"><div class="lecturer-panel"><span>Completed tasks</span><strong>{{ report.completed }}/{{ report.total }}</strong></div><div class="lecturer-panel"><span>Pending</span><strong>{{ report.pending }}</strong></div><div class="lecturer-panel"><span>Overdue</span><strong>{{ report.overdue }}</strong></div><div class="lecturer-panel"><span>Behavioural indicator</span><strong>{{ '%.1f' | format(report.indicator) }}%</strong></div></div>
         <div class="lecturer-notice">Behavioural index = 50% task completion + 25% recorded engagement + 25% seven-day activity consistency. App use is not total study time; the index is not a validated motivation or growth-mindset scale.</div>
         <section class="lecturer-panel lecturer-table-panel"><h2>Recent activity indicators (7 days)</h2><p>Recorded interactions: <strong>{{ report.activity_events }}</strong>. Active days: <strong>{{ report.active_days }}/7</strong>. Recorded engagement: <strong>{{ report.engagement }}%</strong>. Consistency: <strong>{{ report.consistency }}%</strong>.</p></section>

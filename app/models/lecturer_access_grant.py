@@ -10,6 +10,8 @@ class LecturerAccessGrant(db.Model):
     student_id = db.Column(db.Integer, db.ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False, index=True)
     lecturer_id = db.Column(db.Integer, db.ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False, index=True)
     granted_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    # Email reports require separate, explicit student consent; default OFF.
+    email_allowed = db.Column(db.Boolean, nullable=False, default=False, server_default='0')
 
     student = db.relationship("User", foreign_keys=[student_id])
     lecturer = db.relationship("User", foreign_keys=[lecturer_id])

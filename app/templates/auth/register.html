@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/email_features.css') }}?v=1">
+<script src="{{ url_for('static', filename='js/password_toggle.js') }}?v=1" defer></script>
+
 <div class="auth-page">
         <div class="auth-showcase" aria-hidden="true"><div class="auth-showcase-brand"><div class="showcase-mark">✦</div> Learn with intention.</div><div class="showcase-orbit"><div class="orbit-core">✧</div><span class="orbit-node orbit-node-one">Plan</span><span class="orbit-node orbit-node-two">Grow</span><span class="orbit-node orbit-node-three">Reflect</span></div><div class="showcase-bottom"><span class="showcase-label">YOUR LEARNING, REIMAGINED</span><h2>Better habits.<br>Brighter outcomes.</h2><p>One thoughtful workspace to plan, reflect and stay motivated.</p></div></div>
 
@@ -41,12 +44,12 @@
 
                 <div class="col-md-6 mb-3">
                     <label>Password</label>
-                    <input type="password" name="password" class="form-control custom-input" required>
+                    <div class="password-field"><input id="register-password" type="password" name="password" class="form-control custom-input" autocomplete="new-password" required><button type="button" class="password-toggle" data-toggle-password="register-password" aria-label="Show password" aria-pressed="false">Show</button></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                     <label>Confirm Password</label>
-                    <input type="password" name="confirm_password" class="form-control custom-input" required>
+                    <div class="password-field"><input id="register-confirm" type="password" name="confirm_password" class="form-control custom-input" autocomplete="new-password" required><button type="button" class="password-toggle" data-toggle-password="register-confirm" aria-label="Show password" aria-pressed="false">Show</button></div>
                 </div>
             </div>
 
