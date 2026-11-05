@@ -205,3 +205,33 @@ def test_email_report_requires_csrf(client):
     register(client)
     login(client)
     assert client.post("/api/reports/email").status_code == 400
+
+
+def test_https_forgot_password_requires_and_accepts_same_origin_referrer(client, app):
+    """Live HTTPS forms must satisfy Flask-WTF's strict same-origin referrer validation."""
+    with app.app_context():
+        pass
+    response = client.get("/auth/forgot-password", base_url="https://edumind.example.test")
+    assert response.status_code == 200
+    assert response.headers["Referrer-Policy"] == "strict-origin"
+    match = re.search(rb'name="csrf_token"[^>]*value="([^"]+)"', response.data)
+    assert match
+    token = match.group(1).decode()
+    missing = client.post("/auth/forgot-password",
+        base_url="https://edumind.example.test",
+        data={"csrf_token": token, "email": "nobody@example.test"})
+    assert missing.status_code == 400
+    accepted = client.post("/auth/forgot-password",
+        base_url="https://edumind.example.test",
+        headers={"Referer": "https://edumind.example.test/"},
+        data={"csrf_token": token, "email": "nobody@example.test"})
+    assert accepted.status_code == 302
+
+
+def test_https_reset_page_uses_referrer_policy_compatible_with_csrf(client, app):
+    register(client)
+    forgot(client, "student@example.test")
+    path = reset_path(app)
+    response = client.get(path, base_url="https://edumind.example.test")
+    assert response.status_code == 200
+    assert response.headers["Referrer-Policy"] == "strict-origin"
