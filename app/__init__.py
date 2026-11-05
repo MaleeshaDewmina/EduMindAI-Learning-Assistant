@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for, request
+from flask import Flask, redirect, url_for, request, session
 from flask_login import current_user
 from flask_wtf.csrf import CSRFProtect
 
@@ -39,6 +39,7 @@ def create_app(test_config=None):
     from app.models.evaluation_response import EvaluationResponse
     from app.models.evaluation_item_response import EvaluationItemResponse
     from app.models.lecturer_access_grant import LecturerAccessGrant
+    from app.models.email_action_event import EmailActionEvent
 
     from app.routes.auth_routes import auth_bp
     from app.routes.dashboard_routes import dashboard_bp
@@ -48,6 +49,7 @@ def create_app(test_config=None):
     from app.routes.feedback_routes import feedback_bp
     from app.routes.evaluation_routes import evaluation_bp
     from app.routes.lecturer_routes import lecturer_bp
+    from app.routes.secure_email_routes import mail_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -57,6 +59,20 @@ def create_app(test_config=None):
     app.register_blueprint(feedback_bp)
     app.register_blueprint(evaluation_bp)
     app.register_blueprint(lecturer_bp)
+    app.register_blueprint(mail_bp)
+
+    @app.before_request
+    def check_password_session():
+        # A reset invalidates every old login session for this account.
+        # Hash fingerprint is stored in the signed session, not the DB.
+        import hashlib
+        from flask_login import logout_user
+        if current_user.is_authenticated:
+            current_fp = hashlib.sha256(current_user.password_hash.encode('utf-8')).hexdigest()
+            if session.get('_password_fp') != current_fp:
+                logout_user()
+                session.pop('_password_fp', None)
+                return redirect(url_for('auth.login'))
 
     @app.before_request
     def lecturer_stays_in_lecturer_area():
@@ -65,7 +81,7 @@ def create_app(test_config=None):
         # chatbot, feedback, evaluation submission, or student account pages.
         if (current_user.is_authenticated
                 and current_user.role == "lecturer"
-                and request.endpoint not in ("auth.logout", "static", "home")
+                and request.endpoint not in ("auth.logout", "static", "home", "mail.forgot_password", "mail.reset_password", "mail.email_report")
                 and request.blueprint != "lecturer"):
             return redirect(url_for("lecturer.index"))
 
