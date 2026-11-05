@@ -13,7 +13,7 @@ PW = "DemoSecurePassword123"
 def token(client, path):
     response = client.get(path)
     assert response.status_code == 200
-    match = re.search(rb'name="csrf_token"\\s+value="([^"]+)"', response.data)
+    match = re.search(rb'name="csrf_token"\s+value="([^"]+)"', response.data)
     assert match
     return match.group(1).decode()
 
