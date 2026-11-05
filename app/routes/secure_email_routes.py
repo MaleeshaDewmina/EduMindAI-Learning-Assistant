@@ -33,7 +33,9 @@ def forgot_password():
 
     response = current_app.make_response(render_template("auth/forgot_password.html"))
     response.headers["Cache-Control"] = "no-store"
-    response.headers["Referrer-Policy"] = "no-referrer"
+    # Flask-WTF checks HTTPS POST Referer for same-origin CSRF protection.
+    # Send only the origin (not the token-bearing reset URL).
+    response.headers["Referrer-Policy"] = "strict-origin"
     return response
 
 
@@ -62,7 +64,9 @@ def reset_password(token):
     response = current_app.make_response(
         render_template("auth/reset_password.html", token=token))
     response.headers["Cache-Control"] = "no-store"
-    response.headers["Referrer-Policy"] = "no-referrer"
+    # Flask-WTF checks HTTPS POST Referer for same-origin CSRF protection.
+    # Send only the origin (not the token-bearing reset URL).
+    response.headers["Referrer-Policy"] = "strict-origin"
     return response
 
 
