@@ -55,6 +55,7 @@ def student_detail(student_id):
     return render_template(
         "lecturer/student_detail.html",
         student=grant.student, report=report_for_student(student_id),
+        email_allowed=bool(grant.email_allowed),
     )
 
 
@@ -101,4 +102,15 @@ def revoke_access(grant_id):
     db.session.delete(grant)
     db.session.commit()
     flash("Lecturer report access revoked.", "success")
+    return redirect(url_for("lecturer.sharing"))
+
+
+@lecturer_bp.route("/sharing/email-permission/<int:grant_id>", methods=["POST"])
+@student_only
+def email_permission(grant_id):
+    grant = LecturerAccessGrant.query.filter_by(
+        grant_id=grant_id, student_id=current_user.user_id).first_or_404()
+    grant.email_allowed = request.form.get("email_allowed") == "on"
+    db.session.commit()
+    flash("Email report permission updated.", "success")
     return redirect(url_for("lecturer.sharing"))
