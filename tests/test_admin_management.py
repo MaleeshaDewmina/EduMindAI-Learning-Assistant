@@ -202,3 +202,53 @@ def test_role_change_invalidates_existing_session(client, app):
     assert response.status_code == 302
     assert response.location.startswith("/auth/login")
     assert b"Welcome back" in client.get("/auth/login").data or client.get("/auth/login").status_code == 200
+
+
+def test_lock_timeout_on_staff_creation_rolls_back_and_does_not_send_invite(
+        client, app, monkeypatch):
+    from sqlalchemy.exc import OperationalError
+    seed(app)
+    sign_in(client, "owner@example.test")
+
+    def locked(*args, **kwargs):
+        raise OperationalError(
+            "INSERT INTO users", {},
+            Exception(1205, "Lock wait timeout exceeded"),
+        )
+
+    monkeypatch.setattr(db.session, "flush", locked)
+    response = create(client, "admin", "newstaff@example.test")
+    assert response.status_code == 200
+    assert b"could not save the account right now" in response.data
+    assert b"Internal Server Error" not in response.data
+    with app.app_context():
+        assert User.query.filter_by(email="newstaff@example.test").count() == 0
+    assert app.extensions.get("edumind_test_outbox", []) == []
+
+
+def test_lock_timeout_on_staff_status_rolls_back(
+        client, app, monkeypatch):
+    from sqlalchemy.exc import OperationalError
+    ids = seed(app)
+    sign_in(client, "owner@example.test")
+
+    def locked(*args, **kwargs):
+        raise OperationalError(
+            "UPDATE users", {},
+            Exception(1205, "Lock wait timeout exceeded"),
+        )
+
+    monkeypatch.setattr(db.session, "commit", locked)
+    response = client.post(
+        f"/admin/accounts/{ids['teacher@example.test']}/status",
+        data={
+            "csrf_token": token(client, "/admin/"),
+            "current_password": PW,
+            "active": "false",
+        },
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert b"status could not be saved" in response.data
+    with app.app_context():
+        assert db.session.get(User, ids["teacher@example.test"]).is_active is True
