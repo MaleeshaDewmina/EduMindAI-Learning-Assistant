@@ -2,15 +2,138 @@
 {% block content %}
 <div class="dashboard-layout">
     {% include "partials/sidebar.html" %}
-    <main class="main-content lecturer-page">
-        <div class="topbar"><div><span class="lecturer-kicker">ACADEMIC WORKSPACE</span><h1>Lecturer Dashboard</h1><p>Read-only reporting for students who have explicitly shared their progress.</p></div></div>
-        <div class="lecturer-notice"><strong>Privacy first.</strong> Only authorised students are shown. Scores measure recorded app behaviour, not psychological motivation. Questionnaire ratings are exploratory, and report access does not replace research ethics approval.</div>
-        <div class="lecturer-cards"><div class="lecturer-panel"><span>Students sharing with you</span><strong>{{ entries | length }}</strong></div><div class="lecturer-panel"><span>Students with a completed pre-test</span><strong>{{ pre_count }}</strong><small>See individual study reports for verified submission status.</small></div></div>
-        <section class="lecturer-panel lecturer-table-panel"><h2>Authorised student progress</h2>
-        {% if entries %}<div class="table-responsive"><table class="table custom-table align-middle"><thead><tr><th>Student</th><th>Tasks complete</th><th>Overdue</th><th>Behavioural indicator</th><th>Report</th></tr></thead><tbody>
-        {% for student, report in entries %}<tr><td><strong>{{ student.full_name }}</strong><br><small>{{ student.email }}</small></td><td>{{ report.completed }}/{{ report.total }} ({{ '%.1f' | format(report.completion) }}%)</td><td>{{ report.overdue }}</td><td>{{ '%.1f' | format(report.indicator) }}%</td><td><a class="lecturer-link" href="{{ url_for('lecturer.student_detail', student_id=student.user_id) }}">View report &rarr;</a></td></tr>{% endfor %}
-        </tbody></table></div>
-        {% else %}<p>No students have shared reports with this lecturer yet. Ask a test student to open <strong>Share Progress</strong> and grant access using your lecturer account email.</p>{% endif %}</section>
+    <main class="main-content lecturer-page lecturer-home">
+        <header class="topbar lecturer-home-heading">
+            <div>
+                <span class="lecturer-kicker">ACADEMIC WORKSPACE</span>
+                <h1>Lecturer Dashboard</h1>
+                <p>Student progress, shared with you by permission.</p>
+            </div>
+            <span class="lecturer-access-tag"><span class="lecturer-access-dot" aria-hidden="true"></span> READ-ONLY ACCESS</span>
+        </header>
+
+        <section class="lecturer-overview-hero" aria-labelledby="lecturer-hero-title">
+            <div class="lecturer-hero-copy">
+                <span class="lecturer-hero-eyebrow">✦ YOUR TEACHING OVERVIEW</span>
+                <h2 id="lecturer-hero-title">A clearer view of <em>learning progress.</em></h2>
+                <p>See task progress and activity patterns for students who choose to share their learning data with you.</p>
+                <a href="#shared-reports" class="lecturer-hero-link">Explore student reports <span aria-hidden="true">↗</span></a>
+            </div>
+            <div class="lecturer-hero-ring-panel">
+                <div class="lecturer-hero-ring" style="--lecturer-ring: {{ summary.completion }}%;" role="img"
+                     aria-label="{{ '%.1f'|format(summary.completion) }} percent of shared study tasks complete">
+                    <div class="lecturer-hero-ring-inner">
+                        <strong>{{ '%.0f'|format(summary.completion) }}%</strong>
+                        <span>Tasks complete</span>
+                    </div>
+                </div>
+                <p>Across {{ summary.total_tasks }} task{{ '' if summary.total_tasks == 1 else 's' }} shared with you</p>
+            </div>
+        </section>
+
+        <section class="lecturer-overview-stats" aria-label="Shared learning statistics">
+            <article class="lecturer-overview-stat">
+                <span class="lecturer-stat-icon lavender" aria-hidden="true">♙</span>
+                <span class="lecturer-stat-label">Students sharing</span>
+                <strong>{{ summary.shared_students }}</strong>
+                <small>With active report permission</small>
+            </article>
+            <article class="lecturer-overview-stat">
+                <span class="lecturer-stat-icon mint" aria-hidden="true">✓</span>
+                <span class="lecturer-stat-label">Tasks completed</span>
+                <strong>{{ summary.completed_tasks }}<span class="lecturer-stat-total"> / {{ summary.total_tasks }}</span></strong>
+                <small>Across authorised students</small>
+            </article>
+            <article class="lecturer-overview-stat">
+                <span class="lecturer-stat-icon blue" aria-hidden="true">◷</span>
+                <span class="lecturer-stat-label">Active this week</span>
+                <strong>{{ summary.active_students }}<span class="lecturer-stat-total"> / {{ summary.shared_students }}</span></strong>
+                <small>Students with recorded activity in 7 days</small>
+            </article>
+            <article class="lecturer-overview-stat">
+                <span class="lecturer-stat-icon amber" aria-hidden="true">!</span>
+                <span class="lecturer-stat-label">Overdue tasks</span>
+                <strong>{{ summary.overdue_tasks }}</strong>
+                <small>Open tasks past their deadline</small>
+            </article>
+        </section>
+
+        <div class="lecturer-overview-grid">
+            <section class="lecturer-panel lecturer-student-section" id="shared-reports" aria-labelledby="shared-reports-heading">
+                <div class="lecturer-section-header">
+                    <div>
+                        <span class="lecturer-section-eyebrow">YOUR SHARED LEARNERS</span>
+                        <h2 id="shared-reports-heading">Student progress</h2>
+                        <p>Explore individual read-only reports and activity snapshots.</p>
+                    </div>
+                    <span class="lecturer-section-count">{{ summary.shared_students }} shared</span>
+                </div>
+                {% if entries %}
+                <div class="lecturer-student-list">
+                    {% for student, report in entries %}
+                    <article class="lecturer-student-card">
+                        <div class="lecturer-student-top">
+                            <span class="lecturer-student-avatar" aria-hidden="true">{{ student.full_name[:1]|upper }}</span>
+                            <div class="lecturer-student-identity">
+                                <h3>{{ student.full_name }}</h3>
+                                <p>{{ student.email }}</p>
+                            </div>
+                            <span class="lecturer-share-status" title="Student has granted report access">✓ Shared</span>
+                        </div>
+                        <div class="lecturer-student-progress-head">
+                            <span>Task completion</span><strong>{{ '%.1f'|format(report.completion) }}%</strong>
+                        </div>
+                        <div class="lecturer-student-progress-track" role="progressbar"
+                             aria-label="{{ student.full_name }} task completion"
+                             aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ report.completion }}">
+                            <span style="width: {{ report.completion }}%"></span>
+                        </div>
+                        <div class="lecturer-student-mini-stats">
+                            <div><strong>{{ report.completed }}/{{ report.total }}</strong><span>Tasks done</span></div>
+                            <div><strong>{{ report.activity_events }}</strong><span>Events this week</span></div>
+                            <div><strong>{{ report.overdue }}</strong><span>Overdue</span></div>
+                        </div>
+                        <div class="lecturer-student-footer">
+                            <span class="lecturer-permission-label">
+                                {% if student.user_id in email_enabled_student_ids %}
+                                    <span class="lecturer-permission-dot" aria-hidden="true"></span> Email reports allowed
+                                {% else %}
+                                    Dashboard access only
+                                {% endif %}
+                            </span>
+                            <a class="lecturer-report-button" href="{{ url_for('lecturer.student_detail', student_id=student.user_id) }}">View full report <span aria-hidden="true">↗</span></a>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="lecturer-overview-empty">
+                    <span class="lecturer-empty-symbol" aria-hidden="true">✦</span>
+                    <h3>No shared student reports yet</h3>
+                    <p>A student must first open <strong>Share Progress</strong> in their account and grant access to your Lecturer email. Their information will appear here when they do.</p>
+                </div>
+                {% endif %}
+            </section>
+
+            <aside class="lecturer-side-stack" aria-label="Reporting information">
+                <section class="lecturer-panel lecturer-activity-panel">
+                    <span class="lecturer-section-eyebrow">LAST 7 DAYS</span>
+                    <h2>Learning activity</h2>
+                    <div class="lecturer-activity-number">{{ summary.activity_events }}</div>
+                    <p>Recorded events from students currently sharing with you.</p>
+                    <div class="lecturer-activity-divider"></div>
+                    <div class="lecturer-activity-row"><span>Active students</span><strong>{{ summary.active_students }} / {{ summary.shared_students }}</strong></div>
+                    <div class="lecturer-activity-row"><span>Completed pre-tests</span><strong>{{ summary.pre_count }}</strong></div>
+                </section>
+
+                <section class="lecturer-insight-note">
+                    <div class="lecturer-insight-icon" aria-hidden="true">✧</div>
+                    <h2>Insights with permission</h2>
+                    <p>You can see only reports explicitly shared by students. They may revoke access at any time.</p>
+                    <p><strong>About the indicator:</strong> EduMind AI's behavioural indicator reflects recorded app activity, not a validated measure of motivation or academic achievement. Questionnaire summaries are exploratory; report access does not replace research ethics approval.</p>
+                </section>
+            </aside>
+        </div>
     </main>
 </div>
 {% endblock %}
