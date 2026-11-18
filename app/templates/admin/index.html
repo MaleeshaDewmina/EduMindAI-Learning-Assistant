@@ -50,7 +50,7 @@
         <section class="admin-panel">
             <div class="admin-section-head">
                 <div><h2>Accounts</h2>
-                <p>Showing up to 200 most recent {{ 'accounts' if can_create_admin else 'Lecturer accounts' }}. Changes are recorded in the audit log.</p></div>
+                <p>{{ 'Search and filter registered accounts. Up to 200 matching records are displayed at a time.' if can_create_admin else 'Showing up to 200 most recent Lecturer accounts.' }} Changes are recorded in the audit log.</p></div>
             </div>
             {% if can_create_admin %}
             <form method="GET" action="{{ url_for('admin.index') }}" class="admin-filter-form" role="search" aria-label="Search and filter user accounts">
