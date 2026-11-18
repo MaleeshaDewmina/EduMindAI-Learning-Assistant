@@ -1,6 +1,12 @@
 """Search/filter regression checks for the account governance console."""
+import re
+
+from werkzeug.security import generate_password_hash
 from app.extensions import db
 from app.models.user import User
+
+
+TEST_PASSWORD = "DemoSecurePassword123"
 
 
 def _user(name, email, role, active=True):
@@ -9,16 +15,29 @@ def _user(name, email, role, active=True):
         email=email,
         role=role,
         is_active=active,
-        password_hash="not-used-by-get-tests",
+        password_hash=generate_password_hash(TEST_PASSWORD),
     )
     db.session.add(user)
     return user
 
 
-def _login(client, user_id):
-    with client.session_transaction() as session:
-        session["_user_id"] = str(user_id)
-        session["_fresh"] = True
+def _login(client, email):
+    """Log in through the real route so fingerprint and role session checks run."""
+    page = client.get("/auth/login")
+    assert page.status_code == 200
+    match = re.search(rb'name="csrf_token"\\s+value="([^"]+)"', page.data)
+    assert match is not None
+    response = client.post(
+        "/auth/login",
+        data={
+            "csrf_token": match.group(1).decode(),
+            "email": email,
+            "password": TEST_PASSWORD,
+        },
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert b"Login successful" in response.data
 
 
 def test_superadmin_combined_search_filters(app, client):
@@ -28,9 +47,8 @@ def test_superadmin_combined_search_filters(app, client):
         _user("Asha Lecturer", "lecturer@example.test", "lecturer", False)
         _user("Other", "other@example.test", "student", False)
         db.session.commit()
-        owner_id = superadmin.user_id
 
-    _login(client, owner_id)
+    _login(client, "owner@example.test")
     response = client.get("/admin/?q=asha&role=student&status=active")
     assert response.status_code == 200
     assert b"asha@example.test" in response.data
@@ -45,9 +63,8 @@ def test_superadmin_search_finds_older_account_beyond_first_200(app, client):
         for i in range(205):
             _user(f"Recent Person {i}", f"recent{i}@example.test", "student")
         db.session.commit()
-        owner_id = superadmin.user_id
 
-    _login(client, owner_id)
+    _login(client, "owner@example.test")
     response = client.get("/admin/?q=needle")
     assert response.status_code == 200
     assert b"needle@example.test" in response.data
@@ -60,9 +77,8 @@ def test_superadmin_search_treats_sql_wildcards_as_literals(app, client):
         _user("Percent % Name", "percent@example.test", "student")
         _user("Another Name", "another@example.test", "student")
         db.session.commit()
-        owner_id = superadmin.user_id
 
-    _login(client, owner_id)
+    _login(client, "owner@example.test")
     response = client.get("/admin/?q=%25")
     assert response.status_code == 200
     assert b"percent@example.test" in response.data
@@ -75,9 +91,8 @@ def test_admin_cannot_expand_lecturer_scope_using_query_parameters(app, client):
         _user("Student Secret", "student@example.test", "student")
         _user("Lecturer Visible", "lecturer@example.test", "lecturer")
         db.session.commit()
-        admin_id = ordinary_admin.user_id
 
-    _login(client, admin_id)
+    _login(client, "manager@example.test")
     response = client.get("/admin/?q=student&role=student&status=active")
     assert response.status_code == 200
     assert b"student@example.test" not in response.data
@@ -89,8 +104,7 @@ def test_student_cannot_access_account_search(app, client):
     with app.app_context():
         student = _user("Learner", "learner@example.test", "student")
         db.session.commit()
-        student_id = student.user_id
-    _login(client, student_id)
+    _login(client, "learner@example.test")
     response = client.get("/admin/?q=lecturer")
     assert response.status_code == 403
 
@@ -100,8 +114,7 @@ def test_superadmin_invalid_filters_do_not_expose_other_accounts(app, client):
         superadmin = _user("Owner", "owner@example.test", "superadmin")
         _user("Learner", "learner@example.test", "student")
         db.session.commit()
-        owner_id = superadmin.user_id
-    _login(client, owner_id)
+    _login(client, "owner@example.test")
     response = client.get("/admin/?role=unknown")
     assert response.status_code == 200
     assert b"No accounts match these filters" in response.data
