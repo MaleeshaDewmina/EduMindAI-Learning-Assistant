@@ -25,7 +25,7 @@ def _login(client, email):
     """Log in through the real route so fingerprint and role session checks run."""
     page = client.get("/auth/login")
     assert page.status_code == 200
-    match = re.search(rb'name="csrf_token"\\s+value="([^"]+)"', page.data)
+    match = re.search(rb'name="csrf_token"\s+value="([^"]+)"', page.data)
     assert match is not None
     response = client.post(
         "/auth/login",
