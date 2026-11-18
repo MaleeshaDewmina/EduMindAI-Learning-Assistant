@@ -9,6 +9,7 @@ from functools import wraps
 
 from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
+from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -67,6 +68,36 @@ def index():
     # Super Admin identity details into an ordinary Admin response.
     is_superadmin = current_user.role == "superadmin"
     visible_accounts = User.query if is_superadmin else User.query.filter_by(role="lecturer")
+
+    # Only Super Admin can search across all account roles. Filters are applied
+    # before the display limit so older matching accounts can still be found.
+    search_query = request.args.get("q", "", type=str).strip()[:120] if is_superadmin else ""
+    role_filter = request.args.get("role", "all", type=str) if is_superadmin else "all"
+    status_filter = request.args.get("status", "all", type=str) if is_superadmin else "all"
+
+    if search_query:
+        # Treat SQL LIKE wildcard characters as literal search text.
+        escaped = (search_query.replace("\\", "\\\\")
+                   .replace("%", "\\%").replace("_", "\\_"))
+        term = f"%{escaped}%"
+        visible_accounts = visible_accounts.filter(or_(
+            User.full_name.ilike(term, escape="\\"),
+            User.email.ilike(term, escape="\\"),
+        ))
+
+    if role_filter in ("student", "lecturer", "admin", "superadmin"):
+        visible_accounts = visible_accounts.filter(User.role == role_filter)
+    elif role_filter != "all":
+        visible_accounts = visible_accounts.filter(False)
+
+    if status_filter == "active":
+        visible_accounts = visible_accounts.filter(User.is_active.is_(True))
+    elif status_filter == "suspended":
+        visible_accounts = visible_accounts.filter(User.is_active.is_(False))
+    elif status_filter != "all":
+        visible_accounts = visible_accounts.filter(False)
+
+    matching_count = visible_accounts.count()
     accounts = (visible_accounts.order_by(User.created_at.desc(), User.user_id.desc())
                 .limit(200).all())
     if is_superadmin:
@@ -77,6 +108,10 @@ def index():
     return render_template(
         "admin/index.html", accounts=accounts, counts=counts,
         can_create_admin=is_superadmin,
+        search_query=search_query,
+        role_filter=role_filter,
+        status_filter=status_filter,
+        matching_count=matching_count,
     )
 
 

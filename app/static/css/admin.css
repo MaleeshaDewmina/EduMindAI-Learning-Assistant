@@ -32,3 +32,12 @@
 .admin-overview.admin-overview-restricted{grid-template-columns:repeat(2,minmax(0,1fr))}
 .admin-overview-restricted .admin-stat strong{font-size:1.7rem}
 @media(max-width:560px){.admin-overview.admin-overview-restricted{grid-template-columns:1fr}}
+
+/* Server-side account search on the Super Admin console. */
+.admin-filter-form{display:grid;grid-template-columns:minmax(200px,2fr) repeat(2,minmax(140px,1fr));gap:12px;align-items:end;margin:4px 0 14px}
+.admin-filter-form .admin-field input,.admin-filter-form .admin-field select{height:42px}
+.admin-filter-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;grid-column:1/-1}
+.admin-filter-results{margin:0 0 12px;color:var(--text-muted,#697795);font-size:.85rem}
+.admin-empty-state{text-align:center;padding:22px!important;color:var(--text-muted,#697795)}
+@media(max-width:800px){.admin-filter-form{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-filter-form .admin-field:first-child{grid-column:1/-1}}
+@media(max-width:560px){.admin-filter-form{grid-template-columns:1fr}.admin-filter-form .admin-field:first-child{grid-column:auto}}

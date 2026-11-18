@@ -52,6 +52,37 @@
                 <div><h2>Accounts</h2>
                 <p>Showing up to 200 most recent {{ 'accounts' if can_create_admin else 'Lecturer accounts' }}. Changes are recorded in the audit log.</p></div>
             </div>
+            {% if can_create_admin %}
+            <form method="GET" action="{{ url_for('admin.index') }}" class="admin-filter-form" role="search" aria-label="Search and filter user accounts">
+                <div class="admin-field">
+                    <label for="account-search">Search by name or email</label>
+                    <input id="account-search" name="q" type="search" maxlength="120" value="{{ search_query }}" placeholder="Search accounts" autocomplete="off">
+                </div>
+                <div class="admin-field">
+                    <label for="account-role-filter">Account role</label>
+                    <select id="account-role-filter" name="role">
+                        {% for value, label in [('all', 'All roles'), ('student', 'Student'), ('lecturer', 'Lecturer'), ('admin', 'Administrator'), ('superadmin', 'Super Admin')] %}
+                        <option value="{{ value }}" {% if role_filter == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="admin-field">
+                    <label for="account-status-filter">Account status</label>
+                    <select id="account-status-filter" name="status">
+                        {% for value, label in [('all', 'All statuses'), ('active', 'Active'), ('suspended', 'Suspended')] %}
+                        <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="admin-filter-actions">
+                    <button type="submit" class="btn primary-btn">Search / Filter</button>
+                    <a class="btn btn-outline-secondary" href="{{ url_for('admin.index') }}">Clear</a>
+                </div>
+            </form>
+            {% endif %}
+            <p class="admin-filter-results" aria-live="polite">
+                {{ matching_count }} matching {{ 'account' if matching_count == 1 else 'accounts' }}{% if matching_count > accounts|length %} (showing the first {{ accounts|length }}){% endif %}.
+            </p>
             <div class="table-responsive">
                 <table class="table custom-table admin-table">
                     <thead><tr><th>Account</th><th>Role</th><th>Status</th><th>Access controls</th></tr></thead>
@@ -80,6 +111,8 @@
                             {% else %}<span class="admin-locked">Protected</span>{% endif %}
                         </td>
                     </tr>
+                    {% else %}
+                    <tr><td colspan="4" class="admin-empty-state">No accounts match these filters. Try another name, role or status.</td></tr>
                     {% endfor %}
                     </tbody>
                 </table>
